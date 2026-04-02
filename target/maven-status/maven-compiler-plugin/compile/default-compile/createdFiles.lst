@@ -1,0 +1,7 @@
+com/jlivechats/repository/ChatMessageRepository.class
+com/jlivechats/JLiveChatsApplication.class
+com/jlivechats/controller/ChatController.class
+com/jlivechats/model/ChatMessage$ChatMessageBuilder.class
+com/jlivechats/model/ChatMessage.class
+com/jlivechats/config/WebSocketConfig.class
+com/jlivechats/model/ChatMessage$MessageType.class

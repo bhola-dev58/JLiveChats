@@ -1,82 +1,45 @@
-# Real-time-Chating-Box-Using-Java-Sockets
+# JLiveChats - Spring Boot & Hibernate Upgrade
 
+Upgrade of the simple socket-based chat application to a modern **Spring Boot 3** application with **Hibernate (JPA)** and **WebSockets**.
 
-This is a simple real-time chat application built using Java with a server-client architecture. The project consists of two parts:
+## ✨ Features
+- **Real-time Messaging**: Powered by Spring Boot WebSockets and STOMP.
+- **Persistence**: Chat history is automatically saved to an **H2 In-memory database** using **Hibernate**.
+- **Modern Web UI**: Premium Glassmorphism-style interface for a superior user experience.
+- **REST API**: Endpoint available at `/api/history` to retrieve recent messages.
+- **H2 Console**: Accessible at `/h2-console` for database inspection.
 
-- **Server Side**: Handles incoming client connections and exchanges messages.
-- **Client Side**: Connects to the server and participates in the chat.
+## 🛠 Tech Stack
+- **Backend**: Spring Boot 3, Spring Data JPA, Hibernate, WebSockets (STOMP).
+- **Frontend**: HTML5, Vanilla CSS (Glassmorphism), JavaScript (SockJS, Stomp.js).
+- **Database**: H2 (In-memory).
 
-## Features
-- Real-time messaging between server and client.
-- Simple GUI using Java's Swing framework.
-- Message handling and display in both the client and server.
-- Chat termination when either side sends the `"exit"` command.
+## 🚀 Getting Started
 
-## Prerequisites
-- Java JDK 8 or later.
-- IntelliJ IDEA (or any other Java IDE).
-- Basic knowledge of networking in Java.
+### Prerequisites
+- **Java 17** or higher.
+- **Maven** installed.
 
-## Project Structure
-- **`src/`**: Contains the source code for the server and client applications.
-  - `Server.java`: Code for the server-side application.
-  - `Client.java`: Code for the client-side application.
+### Run the Application
+1.  Open your terminal in the project directory.
+2.  Run the following command:
+    ```bash
+    mvn spring-boot:run
+    ```
+3.  Open your browser and navigate to:
+    [http://localhost:9090](http://localhost:9090)
 
-## Setup Instructions
+### Database Access
+You can view the saved chat messages at the H2 console:
+- **URL**: [http://localhost:9090/h2-console](http://localhost:9090/h2-console)
+- **JDBC URL**: `jdbc:h2:mem:chatdb`
+- **User**: `sa`
+- **Password**: (leave empty)
 
-### 1. Clone the Repository
-`
-git clone https://github.com/bhola-dev58/JLiveCharts.git
-cd JLiveCharts`
+## 📁 Project Structure
+- `src/main/java/com/jlivechats/`: Backend source code.
+- `src/main/resources/static/`: Modern web frontend.
+- `legacy/`: Original Swing/Socket source code (preserved for reference).
 
-
-
-
-
- <h2>2. Open the Project in IntelliJ IDEA</h2>
-    <ul>
-        <li>Open IntelliJ IDEA.</li>
-        <li>Click on <strong>File &gt; Open</strong> and select the folder where you cloned the project.</li>
-    </ul>
-
-   <h2>3. Run the Server</h2>
-    <ul>
-        <li>Open <code>Server.java</code> in the editor.</li>
-        <li>Run the Server class by clicking on the green play button or pressing <code>Shift + F10</code>.</li>
-        <li>The server will be waiting for client connections.</li>
-    </ul>
-
-   <h2>4. Run the Client</h2>
-    <ul>
-        <li>Open <code>Client.java</code> in the editor.</li>
-        <li>Modify the IP address in the code to your server's IP (e.g., <code>"localhost"</code> or your network IP).</li>
-        <li>Run the Client class similarly by clicking the play button or pressing <code>Shift + F10</code>.</li>
-    </ul>
-
-  <h2>5. Chatting</h2>
-    <ul>
-        <li>Once the client connects to the server, you can start typing messages in the text box.</li>
-        <li>Press <code>Enter</code> to send messages.</li>
-        <li>Type <code>"exit"</code> to terminate the chat from either side, both from the GUI and from the terminal/bash.</li>
-    </ul>
-
-   <h2>Exiting from Bash</h2>
-    <ul>
-        <li>If running the chat from the terminal, simply type <code>"exit"</code> and press <code>Enter</code> to close the connection and exit the chat.</li>
-    </ul>
-
-   <h2>Screenshots</h2>
-   <img align="" src="https://github.com/bhola-dev58/Real-time-Charting-Box-Using-Java-Sockets/blob/main/src/pn.jpg">
- 
-
-  <h2>Possible Issues</h2>
-    <ul>
-        <li><strong>Port Already in Use:</strong> Ensure the port <code>8080</code> is free by checking if any other service is using it.</li>
-        <li><strong>Firewall Blocking Connection:</strong> Allow Java through your firewall or disable the firewall temporarily.</li>
-    </ul>
-
-   <h2>Customization</h2>
-    <ul>
-        <li>You can change the port by modifying the <code>ServerSocket</code> initialization in the <code>Server.java</code> file.</li>
-        <li>To connect multiple clients, consider implementing multi-threading on the server-side.</li>
-    </ul>
+---
+*Upgraded with ❤️ by Antigravity*
