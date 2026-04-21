@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the Maven build output (fat jar) into the container
-COPY target/JLiveChats-*.jar app.jar
+COPY target/jlivechats-*.jar app.jar
 
 # Expose the port your Spring Boot app runs on
 EXPOSE 8080

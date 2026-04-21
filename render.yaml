@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: jlivechats
+    env: docker
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: GOOGLE_CLIENT_ID
+        value: 861080700046-nuc0b10jb9dcqe8bijmig2ghs55tceko.apps.googleusercontent.com
+        scope: run
+      - key: GOOGLE_CLIENT_SECRET
+        scope: run
+        sync: false
