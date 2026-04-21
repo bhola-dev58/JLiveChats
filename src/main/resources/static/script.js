@@ -1,20 +1,35 @@
 'use strict';
 
-var usernamePage = document.querySelector('#username-page');
-var chatPage = document.querySelector('#chat-page');
-var messageArea = document.querySelector('#messageArea');
-var messageForm = document.querySelector('#messageForm');
-var messageInput = document.querySelector('#message');
-var joinBtn = document.querySelector('#join-btn');
-var loginInput = document.querySelector('#name');
+const usernamePage = document.querySelector('#username-page');
+const chatPage = document.querySelector('#chat-page');
+const loginForm = document.querySelector('#loginForm');
+const messageForm = document.querySelector('#messageForm');
+const messageArea = document.querySelector('#messageArea');
+const messageInput = document.querySelector('#message');
+const loginInput = document.querySelector('#name');
+const currentUsernameDisplay = document.querySelector('#currentUsername');
+const currentUserAvatar = document.querySelector('#currentUserAvatar');
 
-var stompClient = null;
-var username = null;
+let stompClient = null;
+let username = null;
 
-var colors = [
-    '#2196F3', '#32c787', '#00BCD4', '#ff5652',
-    '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
+const colors = [
+    '#5865f2', '#3ba55d', '#faa81a', '#ed4245',
+    '#a370f7', '#eb459e', '#556270', '#4ecdc4'
 ];
+
+function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function formatTime(date) {
+    const d = new Date(date);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
 
 function connect(event) {
     username = loginInput.value.trim();
@@ -23,8 +38,13 @@ function connect(event) {
         usernamePage.classList.add('hidden');
         chatPage.classList.remove('hidden');
 
-        var socket = new SockJS('/ws');
+        currentUsernameDisplay.textContent = username;
+        currentUserAvatar.textContent = username.charAt(0).toUpperCase();
+        currentUserAvatar.style.backgroundColor = stringToColor(username);
+
+        const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
+        stompClient.debug = null; // Disable noisy logs
 
         stompClient.connect({}, onConnected, onError);
     }
@@ -32,33 +52,29 @@ function connect(event) {
 }
 
 function onConnected() {
-    // Subscribe to the Public Topic
     stompClient.subscribe('/topic/public', onMessageReceived);
 
-    // Tell your username to the server
     stompClient.send("/app/chat.addUser",
         {},
         JSON.stringify({ sender: username, type: 'JOIN' })
     );
 
-    // Load history
+    // Initial history fetch
     fetch('/api/history')
         .then(response => response.json())
         .then(messages => {
-            messages.forEach(msg => {
-                displayMessage(msg);
-            });
+            messages.forEach(msg => displayMessage(msg));
         });
 }
 
 function onError(error) {
-    alert('Could not connect to WebSocket server. Please refresh this page to try again!');
+    console.error('WebSocket Error:', error);
 }
 
 function sendMessage(event) {
-    var messageContent = messageInput.value.trim();
+    const messageContent = messageInput.value.trim();
     if (messageContent && stompClient) {
-        var chatMessage = {
+        const chatMessage = {
             sender: username,
             content: messageInput.value,
             type: 'CHAT'
@@ -70,36 +86,64 @@ function sendMessage(event) {
 }
 
 function onMessageReceived(payload) {
-    var message = JSON.parse(payload.body);
+    const message = JSON.parse(payload.body);
     displayMessage(message);
 }
 
+
 function displayMessage(message) {
-    var messageElement = document.createElement('li');
+    if (message.type === 'CHAT') {
+        const msgDiv = document.createElement('div');
+        // Determine left/right alignment
+        const isMe = message.sender === username;
+        msgDiv.className = 'message ' + (isMe ? 'right' : 'left');
 
-    if (message.type === 'JOIN') {
-        messageElement.classList.add('status-message');
-        messageElement.textContent = message.sender + ' joined the chat';
-    } else if (message.type === 'LEAVE') {
-        messageElement.classList.add('status-message');
-        messageElement.textContent = message.sender + ' left the chat';
+        // Avatar
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = message.sender.charAt(0).toUpperCase();
+        avatar.style.backgroundColor = stringToColor(message.sender);
+
+        // Content
+        const content = document.createElement('div');
+        content.className = 'message-content';
+
+        // Header (username + time)
+        const header = document.createElement('div');
+        header.className = 'message-header';
+        const usernameSpan = document.createElement('span');
+        usernameSpan.className = 'message-username';
+        usernameSpan.textContent = message.sender;
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'message-time';
+        timeSpan.textContent = formatTime(message.timestamp);
+        header.appendChild(usernameSpan);
+        header.appendChild(timeSpan);
+
+        // Body
+        const body = document.createElement('div');
+        body.textContent = message.content;
+
+        content.appendChild(header);
+        content.appendChild(body);
+
+        msgDiv.appendChild(avatar);
+        msgDiv.appendChild(content);
+
+        messageArea.appendChild(msgDiv);
     } else {
-        messageElement.classList.add('chat-message');
-        messageElement.classList.add(message.sender === username ? 'me' : 'others');
-
-        var usernameElement = document.createElement('span');
-        usernameElement.classList.add('username');
-        usernameElement.textContent = message.sender;
-        messageElement.appendChild(usernameElement);
-
-        var textElement = document.createElement('p');
-        textElement.textContent = message.content;
-        messageElement.appendChild(textElement);
+        const status = document.createElement('div');
+        status.className = 'status-msg';
+        status.textContent = message.type === 'JOIN' ? `${message.sender} joined the chat` : `${message.sender} left the chat`;
+        messageArea.appendChild(status);
     }
-
-    messageArea.appendChild(messageElement);
     messageArea.scrollTop = messageArea.scrollHeight;
 }
 
-joinBtn.addEventListener('click', connect, true);
+loginForm.addEventListener('submit', connect, true);
 messageForm.addEventListener('submit', sendMessage, true);
+
+// Add logout functionality
+document.getElementById('logout-btn').addEventListener('click', () => {
+    window.location.reload();
+});

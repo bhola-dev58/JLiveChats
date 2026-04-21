@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat | JLiveChats</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stomp-js@2.1.12/dist/stomp.min.js"></script>
+</head>
+<body class="chat-page">
+    <div class="chat-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <div class="user-avatar" th:text="${username?.charAt(0)}"></div>
+                    <div class="user-details">
+                        <div class="user-name" th:text="${username}"></div>
+                        <div class="user-status">Online</div>
+                    </div>
+                </div>
+                <a href="/logout" class="btn-logout">Logout</a>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="section-title">CHANNELS</h3>
+                <ul class="channel-list">
+                    <li class="channel-item active" data-channel="general">#general</li>
+                    <li class="channel-item" data-channel="random">#random</li>
+                    <li class="channel-item" data-channel="announcements">#announcements</li>
+                    <li class="channel-item" data-channel="help">#help</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="section-title">ONLINE USERS</h3>
+                <ul class="users-list">
+                    <li class="user-item">
+                        <span class="online-indicator"></span>
+                        <span>John Doe</span>
+                    </li>
+                    <li class="user-item">
+                        <span class="online-indicator"></span>
+                        <span>Jane Smith</span>
+                    </li>
+                    <li class="user-item">
+                        <span class="online-indicator"></span>
+                        <span>Alex Johnson</span>
+                    </li>
+                    <li class="user-item">
+                        <span class="online-indicator"></span>
+                        <span>Sarah Williams</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="channel-info">
+                    <h2 class="channel-name">#general</h2>
+                    <p class="channel-description">Welcome to the general channel</p>
+                </div>
+                <button class="btn-settings">⚙</button>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="loading-message">Loading messages...</div>
+            </div>
+
+            <div class="input-area">
+                <div class="message-input-wrapper">
+                    <input type="text" id="messageInput" class="message-input" placeholder="Type a message..." autocomplete="off">
+                    <button class="btn-send" id="sendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/chat.js"></script>
+</body>
+</html>
