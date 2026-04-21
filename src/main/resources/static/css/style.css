@@ -442,6 +442,10 @@ body {
     font-size: 14px;
     font-weight: 600;
     flex-shrink: 0;
+    border: 2px solid var(--white);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .message-content {
@@ -702,6 +706,24 @@ body {
     border-radius: 6px;
     margin: 2px 0;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+    border: 1px solid var(--white);
 }
 
 .user-item:hover {
@@ -805,6 +827,54 @@ body {
     transform: scale(1.1);
 }
 
+/* Pin Messages Styling */
+.pin-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: inline-block;
+    user-select: none;
+}
+
+.pin-btn:hover {
+    background: rgba(255, 152, 0, 0.1);
+    border-color: #ff9800;
+    transform: scale(1.1);
+}
+
+.pin-icon {
+    display: inline-block;
+    font-size: 14px;
+    margin-right: 4px;
+    color: #ff9800;
+    font-weight: bold;
+}
+
+.pinned-message {
+    border-left: 4px solid #ff9800 !important;
+    background-color: rgba(255, 152, 0, 0.05) !important;
+}
+
+.unpin-btn {
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 6px;
+    transition: background-color 0.2s;
+}
+
+.unpin-btn:hover {
+    background-color: #f57c00;
+}
+
 /* Enhanced Message Design */
 .message {
     animation: slideIn 0.3s ease-in;
@@ -825,4 +895,360 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     margin: 0 4px;
+}
+
+/* ===== MESSAGE SEARCH ===== */
+.search-header {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-bottom: 2px solid var(--primary);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.close-search {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.close-search:hover {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.search-result {
+    border-left: 3px solid var(--primary);
+}
+
+mark {
+    background-color: #FFEB3B;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #4CAF50;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 14px;
+}
+
+.notification.show {
+    opacity: 1;
+}
+
+/* Chat Header Buttons */
+.header-btn {
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.header-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+#pinCountBadge {
+    background: #ff9800;
+    color: white;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Message Actions */
+.message-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.action-btn {
+    background: transparent;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: var(--primary);
+}
+
+.edit-btn:hover {
+    color: #2196F3;
+}
+
+.delete-btn:hover {
+    color: #f44336;
+}
+
+.edited-label {
+    display: inline-block;
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-left: 6px;
+    font-weight: 500;
+}
+
+/* Mention Autocomplete */
+.mention-dropdown {
+    position: absolute;
+    bottom: 65px;
+    left: 0;
+    background: var(--dark-bg);
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    z-index: 100;
+    max-height: 150px;
+    overflow-y: auto;
+    min-width: 150px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mention-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--text);
+    transition: background-color 0.2s;
+    border-bottom: 1px solid var(--border);
+}
+
+.mention-item:last-child {
+    border-bottom: none;
+}
+
+.mention-item:hover,
+.mention-item.selected {
+    background-color: rgba(102, 126, 234, 0.2);
+    color: var(--primary);
+}
+
+/* Mention Highlighting */
+.mention {
+    background: rgba(102, 126, 234, 0.15);
+    color: var(--primary);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.mention:hover {
+    background: rgba(102, 126, 234, 0.25);
+    text-decoration: underline;
+}
+
+/* Thread Button */
+.thread-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: inline-block;
+    user-select: none;
+}
+
+.thread-btn:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--dark-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    color: var(--primary);
+}
+
+/* Thread Modal */
+.thread-modal {
+    width: 90%;
+    max-width: 600px;
+}
+
+.thread-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.thread-parent {
+    background: rgba(102, 126, 234, 0.08);
+    border-left: 3px solid var(--primary);
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.thread-message-header {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.thread-message-content {
+    color: var(--text);
+    word-break: break-word;
+}
+
+.thread-replies {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.thread-reply {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+.thread-reply-sender {
+    font-weight: 500;
+    color: var(--primary);
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.thread-reply-content {
+    color: var(--text);
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.thread-reply-time {
+    font-size: 11px;
+    color: #999;
+    margin-top: 6px;
+}
+
+.thread-input {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.thread-input input {
+    flex: 1;
+    background: var(--dark-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.thread-input input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.thread-send-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.thread-send-btn:hover {
+    background: var(--secondary);
 }

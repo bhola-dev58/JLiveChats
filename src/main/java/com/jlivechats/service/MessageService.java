@@ -8,6 +8,7 @@ import java.util.List;
 public class MessageService {
     private static List<Message> messages = new ArrayList<>();
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static int messageIdCounter = 0;
 
     static {
         // Initialize with some sample messages
@@ -18,12 +19,14 @@ public class MessageService {
     }
 
     public static class Message {
+        public String id;
         public String sender;
         public String content;
         public String timestamp;
         public boolean isCurrentUser;
 
         public Message(String sender, String content, boolean isCurrentUser) {
+            this.id = "msg-" + (++messageIdCounter);
             this.sender = sender;
             this.content = content;
             this.timestamp = LocalDateTime.now().format(formatter);
@@ -98,5 +101,17 @@ public class MessageService {
      */
     public static int getMessageCount() {
         return messages.size();
+    }
+
+    /**
+     * Get message by ID
+     */
+    public static Message getMessageById(String messageId) {
+        for (Message message : messages) {
+            if (message.id.equals(messageId)) {
+                return message;
+            }
+        }
+        return null;
     }
 }

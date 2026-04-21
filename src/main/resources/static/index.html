@@ -74,6 +74,9 @@
                             <h2>general</h2>
                             <span class="channel-desc">Welcome to the general channel.</span>
                         </div>
+                        <button class="header-btn" title="View pinned messages" onclick="showPinnedMessages(document.querySelector('.channel-info h2').textContent)">
+                            📌 <span id="pinCountBadge">0</span>
+                        </button>
                     </header>
 
                     <div id="messageArea" class="messages-container">
