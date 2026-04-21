@@ -8,10 +8,21 @@ import com.jlivechats.service.PinnedMessageService;
 import com.jlivechats.service.MessageEditService;
 import com.jlivechats.service.MentionService;
 import com.jlivechats.service.ThreadService;
+import com.jlivechats.service.DMService;
+import com.jlivechats.service.ThemeService;
+import com.jlivechats.service.UserProfileService;
+import com.jlivechats.service.UserRoleService;
+import com.jlivechats.service.FileService;
+import com.jlivechats.service.AnalyticsService;
+import com.jlivechats.service.VoiceService;
+import com.jlivechats.service.ModerationService;
+import com.jlivechats.service.NotificationService;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api")
@@ -393,6 +404,378 @@ public class ApiController {
     public ResponseEntity<Map<String, Boolean>> hasThread(@PathVariable String messageId) {
         Map<String, Boolean> response = new HashMap<>();
         response.put("hasThread", ThreadService.hasThread(messageId));
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Send a direct message
+     */
+    @PostMapping("/dms/send")
+    public ResponseEntity<DMService.DMMessage> sendDM(
+            @RequestParam String recipient,
+            @RequestParam String content,
+            HttpSession session) {
+        String sender = (String) session.getAttribute("username");
+        DMService.DMMessage message = DMService.sendMessage(sender, recipient, content);
+        return ResponseEntity.ok(message);
+    }
+
+    /**
+     * Get DM conversation between two users
+     */
+    @GetMapping("/dms/conversation")
+    public ResponseEntity<List<DMService.DMMessage>> getConversation(
+            @RequestParam String otherUser,
+            HttpSession session) {
+        String currentUser = (String) session.getAttribute("username");
+        return ResponseEntity.ok(DMService.getConversation(currentUser, otherUser));
+    }
+
+    /**
+     * Get all DM conversations for user
+     */
+    @GetMapping("/dms/list")
+    public ResponseEntity<Set<String>> getDMList(HttpSession session) {
+        String currentUser = (String) session.getAttribute("username");
+        return ResponseEntity.ok(DMService.getUserDMList(currentUser));
+    }
+
+    /**
+     * Mark DM as read
+     */
+    @PostMapping("/dms/read")
+    public ResponseEntity<Map<String, Object>> markDMAsRead(
+            @RequestParam String otherUser,
+            HttpSession session) {
+        String currentUser = (String) session.getAttribute("username");
+        DMService.markAsRead(currentUser, otherUser);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Conversation marked as read");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get unread DM count
+     */
+    @GetMapping("/dms/unread-count")
+    public ResponseEntity<Map<String, Integer>> getUnreadDMCount(HttpSession session) {
+        String currentUser = (String) session.getAttribute("username");
+        Map<String, Integer> response = new HashMap<>();
+        response.put("unreadCount", DMService.getUnreadCount(currentUser));
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Delete DM conversation
+     */
+    @DeleteMapping("/dms/conversation")
+    public ResponseEntity<Map<String, Object>> deleteConversation(
+            @RequestParam String otherUser,
+            HttpSession session) {
+        String currentUser = (String) session.getAttribute("username");
+        DMService.deleteConversation(currentUser, otherUser);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Conversation deleted");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get user theme preference
+     */
+    @GetMapping("/theme")
+    public ResponseEntity<Map<String, String>> getTheme(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        Map<String, String> response = new HashMap<>();
+        response.put("theme", ThemeService.getUserTheme(username));
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Set user theme preference
+     */
+    @PostMapping("/theme")
+    public ResponseEntity<Map<String, String>> setTheme(
+            @RequestParam String theme,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        ThemeService.setUserTheme(username, theme);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("theme", theme);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Toggle user theme
+     */
+    @PostMapping("/theme/toggle")
+    public ResponseEntity<Map<String, String>> toggleTheme(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        String newTheme = ThemeService.toggleTheme(username);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("theme", newTheme);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get user profile
+     */
+    @GetMapping("/users/{username}/profile")
+    public ResponseEntity<Map<String, Object>> getUserProfile(@PathVariable String username) {
+        UserProfileService.UserProfile profile = UserProfileService.getOrCreateProfile(username);
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", profile.username);
+        response.put("displayName", profile.displayName);
+        response.put("bio", profile.bio);
+        response.put("status", profile.status);
+        response.put("avatarColor", profile.avatarColor);
+        response.put("joinedAt", profile.joinedAt);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Update user profile
+     */
+    @PutMapping("/users/{username}/profile")
+    public ResponseEntity<Map<String, Object>> updateUserProfile(
+            @PathVariable String username,
+            @RequestParam(required = false) String displayName,
+            @RequestParam(required = false) String bio) {
+        UserProfileService.updateProfile(username, displayName, bio);
+        UserProfileService.UserProfile profile = UserProfileService.getProfile(username);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", profile.username);
+        response.put("displayName", profile.displayName);
+        response.put("bio", profile.bio);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get user role
+     */
+    @GetMapping("/users/{username}/role")
+    public ResponseEntity<Map<String, String>> getUserRole(@PathVariable String username) {
+        Map<String, String> response = new HashMap<>();
+        response.put("role", UserRoleService.getUserRole(username));
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Set user role (admin only)
+     */
+    @PostMapping("/users/{username}/role")
+    public ResponseEntity<Map<String, Object>> setUserRole(
+            @PathVariable String username,
+            @RequestParam String role,
+            HttpSession session) {
+        String adminUser = (String) session.getAttribute("username");
+        
+        if (!UserRoleService.isAdmin(adminUser)) {
+            return ResponseEntity.status(403).body(new HashMap<String, Object>() {{
+                put("error", "Unauthorized");
+            }});
+        }
+        
+        UserRoleService.setUserRole(username, role);
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", username);
+        response.put("role", role);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Upload file
+     */
+    @PostMapping("/files/upload")
+    public ResponseEntity<Map<String, Object>> uploadFile(
+            @RequestParam String filename,
+            @RequestParam String fileType,
+            @RequestParam long fileSize,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        FileService.FileInfo file = FileService.uploadFile(filename, username, fileType, fileSize);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", file.id);
+        response.put("filename", file.filename);
+        response.put("uploadedBy", file.uploadedBy);
+        response.put("fileType", file.fileType);
+        response.put("fileSize", file.fileSize);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all files
+     */
+    @GetMapping("/files")
+    public ResponseEntity<List<Map<String, Object>>> getFiles() {
+        return ResponseEntity.ok(FileService.getAllFiles().stream().map(f -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", f.id);
+            map.put("filename", f.filename);
+            map.put("uploadedBy", f.uploadedBy);
+            map.put("uploadedAt", f.uploadedAt);
+            return map;
+        }).toList());
+    }
+
+    /**
+     * Get analytics stats
+     */
+    @GetMapping("/analytics/stats")
+    public ResponseEntity<Map<String, Object>> getAnalytics() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalMessages", AnalyticsService.getTotalMessages());
+        response.put("uptime", AnalyticsService.getUptime());
+        
+        List<Map<String, Object>> topUsers = new ArrayList<>();
+        for (var entry : AnalyticsService.getTopUsers(5)) {
+            Map<String, Object> user = new HashMap<>();
+            user.put("username", entry.getKey());
+            user.put("messageCount", entry.getValue());
+            topUsers.add(user);
+        }
+        response.put("topUsers", topUsers);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Upload voice message
+     */
+    @PostMapping("/voice/upload")
+    public ResponseEntity<Map<String, Object>> uploadVoiceMessage(
+            @RequestParam String channel,
+            @RequestParam String duration,
+            @RequestParam String audioUrl,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        VoiceService.VoiceMessage message = VoiceService.uploadVoiceMessage(username, channel, duration, audioUrl);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", message.id);
+        response.put("sender", message.sender);
+        response.put("duration", message.duration);
+        response.put("timestamp", message.timestamp);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get voice messages in channel
+     */
+    @GetMapping("/voice/channel/{channel}")
+    public ResponseEntity<List<Map<String, Object>>> getVoiceMessages(@PathVariable String channel) {
+        return ResponseEntity.ok(VoiceService.getChannelVoiceMessages(channel).stream().map(v -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", v.id);
+            map.put("sender", v.sender);
+            map.put("duration", v.duration);
+            map.put("timestamp", v.timestamp);
+            map.put("audioUrl", v.audioUrl);
+            return map;
+        }).toList());
+    }
+
+    /**
+     * Ban user
+     */
+    @PostMapping("/moderation/ban")
+    public ResponseEntity<Map<String, Object>> banUser(
+            @RequestParam String username,
+            @RequestParam String reason,
+            HttpSession session) {
+        String moderator = (String) session.getAttribute("username");
+        
+        if (!UserRoleService.isModerator(moderator)) {
+            return ResponseEntity.status(403).body(new HashMap<String, Object>() {{
+                put("error", "Unauthorized");
+            }});
+        }
+        
+        ModerationService.banUser(username, reason);
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", username);
+        response.put("status", "banned");
+        response.put("reason", reason);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Mute user
+     */
+    @PostMapping("/moderation/mute")
+    public ResponseEntity<Map<String, Object>> muteUser(
+            @RequestParam String username,
+            HttpSession session) {
+        String moderator = (String) session.getAttribute("username");
+        
+        if (!UserRoleService.isModerator(moderator)) {
+            return ResponseEntity.status(403).body(new HashMap<String, Object>() {{
+                put("error", "Unauthorized");
+            }});
+        }
+        
+        ModerationService.muteUser(username);
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", username);
+        response.put("status", "muted");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get banned users
+     */
+    @GetMapping("/moderation/banned")
+    public ResponseEntity<List<String>> getBannedUsers() {
+        return ResponseEntity.ok(new ArrayList<>(ModerationService.getBannedUsers()));
+    }
+
+    /**
+     * Get notifications
+     */
+    @GetMapping("/notifications")
+    public ResponseEntity<List<Map<String, Object>>> getNotifications(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        
+        return ResponseEntity.ok(NotificationService.getUserNotifications(username).stream().map(n -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", n.id);
+            map.put("type", n.type);
+            map.put("title", n.title);
+            map.put("message", n.message);
+            map.put("timestamp", n.timestamp);
+            map.put("isRead", n.isRead);
+            return map;
+        }).toList());
+    }
+
+    /**
+     * Get unread notification count
+     */
+    @GetMapping("/notifications/unread-count")
+    public ResponseEntity<Map<String, Integer>> getUnreadNotificationCount(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        Map<String, Integer> response = new HashMap<>();
+        response.put("unreadCount", NotificationService.getUnreadCount(username));
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Mark notification as read
+     */
+    @PostMapping("/notifications/{notificationId}/read")
+    public ResponseEntity<Map<String, String>> markNotificationAsRead(
+            @PathVariable String notificationId,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        NotificationService.markAsRead(username, notificationId);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "read");
         return ResponseEntity.ok(response);
     }
 }

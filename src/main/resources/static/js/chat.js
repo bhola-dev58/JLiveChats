@@ -1056,6 +1056,173 @@ function closeThread() {
     }
 }
 
+/**
+ * Send direct message
+ */
+function sendDM(recipient, content) {
+    const formData = new URLSearchParams();
+    formData.append('recipient', recipient);
+    formData.append('content', content);
+    
+    fetch('/api/dms/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('DM sent:', data);
+        // Clear input and refresh conversation
+        document.getElementById('dmInput').value = '';
+        loadDMConversation(recipient);
+        showNotification('Message sent!');
+    })
+    .catch(error => {
+        console.error('Error sending DM:', error);
+        showNotification('Error sending message');
+    });
+}
+
+/**
+ * Load DM conversation with a user
+ */
+function loadDMConversation(otherUser) {
+    fetch(`/api/dms/conversation?otherUser=${encodeURIComponent(otherUser)}`)
+        .then(response => response.json())
+        .then(messages => {
+            displayDMConversation(messages, otherUser);
+            // Mark as read
+            fetch(`/api/dms/read?otherUser=${encodeURIComponent(otherUser)}`, {
+                method: 'POST'
+            });
+        })
+        .catch(error => console.error('Error loading DM conversation:', error));
+}
+
+/**
+ * Display DM conversation
+ */
+function displayDMConversation(messages, otherUser) {
+    let dmPanel = document.getElementById('dmPanel');
+    if (!dmPanel) {
+        dmPanel = document.createElement('div');
+        dmPanel.id = 'dmPanel';
+        dmPanel.className = 'dm-panel';
+        document.body.appendChild(dmPanel);
+    }
+    
+    const messagesHtml = messages.map(msg => `
+        <div class="dm-message ${msg.sender === currentUser ? 'own' : ''}">
+            <div class="dm-sender">${msg.sender}</div>
+            <div class="dm-content">${msg.content}</div>
+            <div class="dm-time">${msg.timestamp}</div>
+        </div>
+    `).join('');
+    
+    dmPanel.innerHTML = `
+        <div class="dm-header">
+            <h3>💬 ${otherUser}</h3>
+            <button class="close-btn" onclick="closeDM()">✕</button>
+        </div>
+        <div class="dm-messages">
+            ${messagesHtml}
+        </div>
+        <div class="dm-input-area">
+            <input type="text" id="dmInput" placeholder="Message..." autocomplete="off" />
+            <button onclick="sendDM('${otherUser}', document.getElementById('dmInput').value)" class="dm-send-btn">Send</button>
+        </div>
+    `;
+    
+    dmPanel.style.display = 'flex';
+    // Scroll to bottom
+    const messagesDiv = dmPanel.querySelector('.dm-messages');
+    if (messagesDiv) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+}
+
+/**
+ * Close DM panel
+ */
+function closeDM() {
+    const dmPanel = document.getElementById('dmPanel');
+    if (dmPanel) {
+        dmPanel.style.display = 'none';
+    }
+}
+
+/**
+ * Load DM list for user
+ */
+function loadDMList() {
+    fetch('/api/dms/list')
+        .then(response => response.json())
+        .then(dmUsers => {
+            displayDMList(dmUsers);
+        })
+        .catch(error => console.error('Error loading DM list:', error));
+}
+
+/**
+ * Display DM list in sidebar
+ */
+function displayDMList(dmUsers) {
+    const dmListEl = document.getElementById('dmList');
+    if (!dmListEl) return;
+    
+    if (dmUsers.size === 0) {
+        dmListEl.innerHTML = '<li class="empty-state">No messages yet</li>';
+        return;
+    }
+    
+    dmListEl.innerHTML = Array.from(dmUsers).map(user => `
+        <li class="dm-item" onclick="loadDMConversation('${user}')">
+            <span class="dm-user">${user}</span>
+        </li>
+    `).join('');
+}
+
+/**
+ * Load user theme preference
+ */
+function loadUserTheme() {
+    fetch('/api/theme')
+        .then(response => response.json())
+        .then(data => {
+            applyTheme(data.theme);
+        })
+        .catch(error => console.error('Error loading theme:', error));
+}
+
+/**
+ * Apply theme to page
+ */
+function applyTheme(theme) {
+    const html = document.documentElement;
+    if (theme === 'light') {
+        html.setAttribute('data-theme', 'light');
+    } else {
+        html.removeAttribute('data-theme');
+    }
+}
+
+/**
+ * Toggle theme
+ */
+function toggleTheme() {
+    fetch('/api/theme/toggle', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        applyTheme(data.theme);
+        showNotification(`Switched to ${data.theme} theme!`);
+    })
+    .catch(error => console.error('Error toggling theme:', error));
+}
+
 // Utility functions
 function formatTime(timestamp) {
     if (!timestamp) return '';
@@ -1067,4 +1234,168 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/**
+ * Get user profile
+ */
+function getUserProfile(username) {
+    fetch(`/api/users/${username}/profile`)
+        .then(response => response.json())
+        .then(data => {
+            showProfileModal(data);
+        })
+        .catch(error => console.error('Error getting profile:', error));
+}
+
+/**
+ * Show user profile modal
+ */
+function showProfileModal(profile) {
+    const modal = document.createElement('div');
+    modal.className = 'profile-modal';
+    modal.innerHTML = `
+        <div class="profile-content">
+            <h2>${profile.displayName}</h2>
+            <p class="username">@${profile.username}</p>
+            <p class="bio">${profile.bio || 'No bio'}</p>
+            <p class="status">Status: ${profile.status}</p>
+            <p class="joined">Joined: ${profile.joinedAt}</p>
+            <button onclick="this.parentElement.parentElement.remove()">Close</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+/**
+ * Get analytics
+ */
+function getAnalytics() {
+    fetch('/api/analytics/stats')
+        .then(response => response.json())
+        .then(data => {
+            showAnalyticsDashboard(data);
+        })
+        .catch(error => console.error('Error getting analytics:', error));
+}
+
+/**
+ * Show analytics dashboard
+ */
+function showAnalyticsDashboard(stats) {
+    const modal = document.createElement('div');
+    modal.className = 'analytics-modal';
+    modal.innerHTML = `
+        <div class="analytics-content">
+            <h2>Chat Analytics</h2>
+            <p>Total Messages: ${stats.totalMessages}</p>
+            <p>Uptime: ${(stats.uptime / 1000).toFixed(0)}s</p>
+            <h3>Top Users</h3>
+            <ul>
+                ${stats.topUsers.map(u => `<li>${u.username}: ${u.messageCount} messages</li>`).join('')}
+            </ul>
+            <button onclick="this.parentElement.parentElement.remove()">Close</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+/**
+ * Upload voice message
+ */
+function uploadVoiceMessage(channel, duration, audioUrl) {
+    fetch('/api/voice/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            channel: channel,
+            duration: duration,
+            audioUrl: audioUrl
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        showNotification(`Voice message uploaded! (${data.duration})`);
+        // Broadcast to other users
+        if (window.stompClient) {
+            window.stompClient.send("/app/send", {}, JSON.stringify({
+                sender: currentUser,
+                content: `🎤 Voice message: ${data.duration}`,
+                type: "voice"
+            }));
+        }
+    })
+    .catch(error => console.error('Error uploading voice message:', error));
+}
+
+/**
+ * Get notifications
+ */
+function getNotifications() {
+    fetch('/api/notifications')
+        .then(response => response.json())
+        .then(data => {
+            displayNotifications(data);
+        })
+        .catch(error => console.error('Error getting notifications:', error));
+}
+
+/**
+ * Display notifications
+ */
+function displayNotifications(notifications) {
+    const modal = document.createElement('div');
+    modal.className = 'notifications-modal';
+    modal.innerHTML = `
+        <div class="notifications-content">
+            <h2>Notifications (${notifications.length})</h2>
+            <ul>
+                ${notifications.map(n => `
+                    <li class="${n.isRead ? 'read' : 'unread'}">
+                        <strong>${n.type}</strong>: ${n.message}
+                        <small>${n.timestamp}</small>
+                    </li>
+                `).join('')}
+            </ul>
+            <button onclick="this.parentElement.parentElement.remove()">Close</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+/**
+ * Ban user (admin only)
+ */
+function banUser(username, reason) {
+    fetch(`/api/moderation/ban`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            username: username,
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        showNotification(`User ${username} banned: ${reason}`);
+    })
+    .catch(error => console.error('Error banning user:', error));
+}
+
+/**
+ * Mute user (moderator only)
+ */
+function muteUser(username) {
+    fetch(`/api/moderation/mute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            username: username
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        showNotification(`User ${username} muted`);
+    })
+    .catch(error => console.error('Error muting user:', error));
 }
