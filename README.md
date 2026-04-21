@@ -2,6 +2,8 @@
 
 Modern, professional real-time chat application built with **Spring Boot 3.3.0** and **WebSocket**, featuring user authentication, live messaging, and responsive web interface.
 
+> 🚀 **Live Demo**: Currently deploying on Render (free tier) - Check deployment status in [DEPLOYMENT.md](DEPLOYMENT.md)
+
 ## ✨ Features
 
 ### User Authentication
@@ -38,7 +40,7 @@ Modern, professional real-time chat application built with **Spring Boot 3.3.0**
 
 - **Java 17** or higher installed
 - **Maven** 3.8+ installed
-- **JavaFX SDK** (automatically managed by Maven)
+- **Git** (for cloning the repository)
 
 ## 🚀 Getting Started
 
@@ -80,6 +82,17 @@ java -jar target/jlivechats-1.0.0.jar
 1. Open project in IntelliJ IDEA or Eclipse
 2. Right-click on `JLiveChatsApplication.java` (in `src/main/java/com/jlivechats/`)
 3. Select "Run JLiveChatsApplication.main()"
+
+## 🌐 Deployment
+
+For complete deployment instructions to Render, Railway, Docker, or other platforms, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+**Quick Deploy to Render (Free):**
+1. Go to [render.com](https://render.com)
+2. Create new Web Service from GitHub
+3. Select this repository
+4. Set environment variables (see DEPLOYMENT.md)
+5. Deploy!
 
 ## 🔐 Default Test Users
 

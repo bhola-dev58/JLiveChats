@@ -2,11 +2,12 @@ target/
 *.iml
 .idea/
 *.log
-*.class
-*.jar
-node_modules/
 .DS_Store
 .git
 .gitignore
-src/
+node_modules/
+.env
+.env.local
 README.md
+DEPLOYMENT.md
+*.md
