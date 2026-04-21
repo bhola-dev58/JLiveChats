@@ -1,0 +1,12 @@
+target/
+*.iml
+.idea/
+*.log
+*.class
+*.jar
+node_modules/
+.DS_Store
+.git
+.gitignore
+src/
+README.md
