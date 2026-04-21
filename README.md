@@ -94,6 +94,10 @@ For complete deployment instructions to Render, Railway, Docker, or other platfo
 4. Set environment variables (see DEPLOYMENT.md)
 5. Deploy!
 
+## ⚠️ Google OAuth Troubleshooting
+
+If you're getting `Error 400: redirect_uri_mismatch` when signing in, see [GOOGLE_OAUTH_FIX.md](GOOGLE_OAUTH_FIX.md) for detailed instructions on updating Google Cloud Console.
+
 ## 🔐 Default Test Users
 
 The application comes with pre-configured test accounts:
