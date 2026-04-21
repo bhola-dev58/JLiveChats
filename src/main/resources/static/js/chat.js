@@ -1,8 +1,12 @@
-// JLiveChats Web Application - Chat JavaScript
+// JLiveChats Enhanced Web Application - Real-time Chat with New Features
+// Features: User Presence, Typing Indicators, Message Reactions
 
 let stompClient = null;
 let currentUser = null;
 let currentChannel = 'general';
+let onlineUsers = [];
+let typingUsers = {};
+let messageIdMap = {}; // Map to store message IDs for reactions
 
 document.addEventListener('DOMContentLoaded', function () {
     initializeChat();
@@ -23,6 +27,22 @@ function initializeChat() {
 
     // Connect to WebSocket
     connectWebSocket();
+
+    // Handle page visibility for presence
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            broadcastUserOffline();
+        } else {
+            broadcastUserOnline();
+        }
+    });
+
+    // Handle window close
+    window.addEventListener('beforeunload', function() {
+        if (stompClient && stompClient.connected) {
+            broadcastUserOffline();
+        }
+    });
 }
 
 function setupEventListeners() {
@@ -41,9 +61,25 @@ function setupEventListeners() {
         }
     });
 
+    // Typing indicator
+    messageInput.addEventListener('input', function() {
+        if (stompClient && stompClient.connected) {
+            sendTypingIndicator(true);
+        }
+    });
+
+    messageInput.addEventListener('blur', function() {
+        if (stompClient && stompClient.connected) {
+            sendTypingIndicator(false);
+        }
+    });
+
     // Channel switching
     channelItems.forEach(item => {
         item.addEventListener('click', function () {
+            // Stop typing when switching channels
+            sendTypingIndicator(false);
+            
             // Remove active class from all items
             channelItems.forEach(i => i.classList.remove('active'));
             // Add active class to clicked item
@@ -92,18 +128,22 @@ function sendMessage() {
         return;
     }
 
+    const messageId = generateMessageId();
+
     // Create message object
     const message = {
+        id: messageId,
         sender: currentUser,
         content: content,
         channel: currentChannel,
+        messageType: 'chat',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
     // Send via WebSocket if connected, otherwise use HTTP
     if (stompClient && stompClient.connected) {
         console.log('Sending message via WebSocket...');
-        stompClient.send("/app/sendMessage", {}, JSON.stringify(message));
+        stompClient.send("/app/sendChannelMessage", {}, JSON.stringify(message));
     } else {
         console.log('WebSocket not connected, sending via HTTP...');
         // Send message to server via HTTP POST
@@ -116,15 +156,12 @@ function sendMessage() {
         })
         .then(response => response.json())
         .then(msg => {
-            // Display message immediately
+            msg.id = messageId;
             msg.isCurrentUser = true;
             displayMessage(msg);
-            
-            // Clear input
             messageInput.value = '';
             messageInput.focus();
 
-            // Auto-scroll to bottom
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         })
@@ -133,9 +170,10 @@ function sendMessage() {
         });
     }
     
-    // Clear input
+    // Clear input and stop typing indicator
     messageInput.value = '';
     messageInput.focus();
+    sendTypingIndicator(false);
 }
 
 function displayMessage(msg) {
@@ -149,6 +187,10 @@ function displayMessage(msg) {
 
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${msg.isCurrentUser ? 'own' : ''}`;
+    messageDiv.id = `msg-${msg.id || Date.now()}`;
+    if (msg.id) {
+        messageIdMap[messageDiv.id] = msg.id;
+    }
 
     const avatarDiv = document.createElement('div');
     avatarDiv.className = 'message-avatar';
@@ -169,15 +211,109 @@ function displayMessage(msg) {
     timeDiv.className = 'message-time';
     timeDiv.textContent = msg.timestamp || new Date().toLocaleTimeString();
 
+    const reactionsDiv = document.createElement('div');
+    reactionsDiv.className = 'message-reactions';
+    reactionsDiv.innerHTML = '<span class="reaction-btn" onclick="addReaction(this)">😊</span>';
+
     contentDiv.appendChild(headerDiv);
     contentDiv.appendChild(textDiv);
     contentDiv.appendChild(timeDiv);
+    contentDiv.appendChild(reactionsDiv);
 
-    // Always add both avatar and content - CSS handles the layout
     messageDiv.appendChild(avatarDiv);
     messageDiv.appendChild(contentDiv);
 
     messagesContainer.appendChild(messageDiv);
+}
+
+function displayTypingIndicator() {
+    const typingList = Object.keys(typingUsers).filter(u => u !== currentUser);
+    const typingIndicatorEl = document.getElementById('typingIndicator');
+    
+    if (typingList.length > 0) {
+        const typingText = typingList.length === 1 
+            ? `${typingList[0]} is typing...`
+            : `${typingList.join(', ')} are typing...`;
+        if (typingIndicatorEl) {
+            typingIndicatorEl.innerHTML = `<em>${typingText}</em>`;
+            typingIndicatorEl.style.display = 'block';
+        }
+    } else {
+        if (typingIndicatorEl) {
+            typingIndicatorEl.style.display = 'none';
+        }
+    }
+}
+
+function displayUserPresence() {
+    // Update online count
+    const onlineCountEl = document.getElementById('onlineCount');
+    if (onlineCountEl) {
+        onlineCountEl.textContent = onlineUsers.length;
+    }
+
+    // Update user list if it exists
+    const userListEl = document.getElementById('userList');
+    if (userListEl) {
+        userListEl.innerHTML = '';
+        onlineUsers.forEach(user => {
+            const userItemDiv = document.createElement('div');
+            userItemDiv.className = 'user-item';
+            userItemDiv.innerHTML = `<span class="user-status online"></span> ${user}`;
+            userListEl.appendChild(userItemDiv);
+        });
+    }
+}
+
+function sendTypingIndicator(isTyping) {
+    if (!stompClient || !stompClient.connected) return;
+    
+    const typingEvent = {
+        username: currentUser,
+        channel: currentChannel,
+        isTyping: isTyping
+    };
+    
+    stompClient.send("/app/user/typing", {}, JSON.stringify(typingEvent));
+}
+
+function broadcastUserOnline() {
+    if (!stompClient || !stompClient.connected) return;
+    
+    const presenceEvent = {
+        username: currentUser,
+        status: 'online',
+        channel: currentChannel,
+        onlineCount: onlineUsers.length
+    };
+    
+    stompClient.send("/app/user/online", {}, JSON.stringify(presenceEvent));
+}
+
+function broadcastUserOffline() {
+    if (!stompClient || !stompClient.connected) return;
+    
+    const presenceEvent = {
+        username: currentUser,
+        status: 'offline',
+        channel: currentChannel,
+        onlineCount: onlineUsers.length
+    };
+    
+    stompClient.send("/app/user/offline", {}, JSON.stringify(presenceEvent));
+}
+
+function addReaction(element) {
+    const emoji = prompt('Add emoji reaction (e.g., 👍, ❤️, 😂, etc.):', '👍');
+    if (emoji) {
+        const messageDiv = element.closest('.message');
+        if (messageDiv) {
+            const reactionEl = document.createElement('span');
+            reactionEl.className = 'reaction-badge';
+            reactionEl.textContent = emoji;
+            element.parentNode.insertBefore(reactionEl, element);
+        }
+    }
 }
 
 function connectWebSocket() {
@@ -188,14 +324,15 @@ function connectWebSocket() {
     stompClient.connect({}, function(frame) {
         console.log('Connected: ' + frame.command);
 
+        // Broadcast user online
+        broadcastUserOnline();
+
         // Subscribe to messages topic
         stompClient.subscribe('/topic/messages', function(messageOutput) {
             const msg = JSON.parse(messageOutput.body);
-            // Set isCurrentUser based on sender
             msg.isCurrentUser = (msg.sender === currentUser);
             displayMessage(msg);
             
-            // Auto-scroll to bottom
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         });
@@ -203,31 +340,76 @@ function connectWebSocket() {
         // Subscribe to channel-specific messages
         stompClient.subscribe(`/topic/channel/${currentChannel}`, function(messageOutput) {
             const msg = JSON.parse(messageOutput.body);
-            // Set isCurrentUser based on sender
             msg.isCurrentUser = (msg.sender === currentUser);
             displayMessage(msg);
             
-            // Auto-scroll to bottom
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         });
 
-        console.log('WebSocket subscribed to /topic/messages and /topic/channel/general');
+        // Subscribe to presence updates
+        stompClient.subscribe('/topic/presence', function(output) {
+            const event = JSON.parse(output.body);
+            if (event.status === 'online') {
+                if (!onlineUsers.includes(event.username)) {
+                    onlineUsers.push(event.username);
+                }
+            } else if (event.status === 'offline') {
+                onlineUsers = onlineUsers.filter(u => u !== event.username);
+            }
+            displayUserPresence();
+        });
+
+        // Subscribe to typing indicators
+        stompClient.subscribe('/topic/typing', function(output) {
+            const event = JSON.parse(output.body);
+            if (event.isTyping) {
+                typingUsers[event.username] = true;
+            } else {
+                delete typingUsers[event.username];
+            }
+            displayTypingIndicator();
+        });
+
+        // Subscribe to message reactions
+        stompClient.subscribe('/topic/reactions', function(output) {
+            const event = JSON.parse(output.body);
+            const messageDiv = document.getElementById(`msg-${event.messageId}`);
+            if (messageDiv && event.action === 'add') {
+                const reactionsDiv = messageDiv.querySelector('.message-reactions');
+                if (reactionsDiv) {
+                    const existingReaction = reactionsDiv.querySelector(`.reaction-badge[data-emoji="${event.emoji}"]`);
+                    if (existingReaction) {
+                        existingReaction.textContent = event.emoji + ' ✓';
+                    } else {
+                        const reactionEl = document.createElement('span');
+                        reactionEl.className = 'reaction-badge';
+                        reactionEl.setAttribute('data-emoji', event.emoji);
+                        reactionEl.textContent = event.emoji;
+                        reactionsDiv.insertBefore(reactionEl, reactionsDiv.firstChild);
+                    }
+                }
+            }
+        });
+
+        console.log('WebSocket fully subscribed with all features enabled');
     }, function(error) {
         console.error('WebSocket connection error:', error);
-        // If WebSocket fails, fall back to polling
         console.log('Falling back to polling mode...');
     });
 }
 
-// Utility function to format timestamp
+function generateMessageId() {
+    return 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+// Utility functions
 function formatTime(timestamp) {
     if (!timestamp) return '';
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// Utility function to escape HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;

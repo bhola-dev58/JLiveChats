@@ -1,8 +1,9 @@
 # JLiveChats - Spring Boot Real-time Chat Application
 
-Modern, professional real-time chat application built with **Spring Boot 3.3.0** and **WebSocket**, featuring user authentication, live messaging, and responsive web interface.
+Modern, professional real-time chat application built with **Spring Boot 3.3.0** and **WebSocket**, featuring user authentication, live messaging, multi-user support, and real-time collaboration features.
 
-> 🚀 **Live Demo**: Currently deploying on Render (free tier) - Check deployment status in [DEPLOYMENT.md](DEPLOYMENT.md)
+> **v2.0 Released!** 🎉 Multi-user presence, typing indicators, message reactions, and more!  
+> See [FEATURES_V2.md](FEATURES_V2.md) for detailed new features.
 
 ## ✨ Features
 
@@ -12,19 +13,27 @@ Modern, professional real-time chat application built with **Spring Boot 3.3.0**
 - **Session Management**: Automatic login state tracking
 - **User Profiles**: Display current user information
 
-### Chat Features
+### Real-time Chat (Multi-User)
 - **Real-time Messaging**: Send and receive messages instantly
 - **Channel Support**: Multiple channels for organized conversations
-- **User Presence**: See online users and their status
-- **Message Timestamps**: All messages are timestamped
+- **User Presence**: See who's online in real-time
+- **Online User Count**: Active participant tracking
 - **Message History**: View recent chat history (50 messages)
+
+### Collaboration Features (v2.0)
+- **Typing Indicators**: See when others are typing in real-time
+- **Message Reactions**: Add emoji reactions to messages
+- **User List**: See all active users in sidebar
+- **Online Status**: Visual indicators for online/offline users
+- **Auto-sync**: Changes sync across all connected clients
 
 ### User Interface
 - **Modern Design**: Professional gradient-based UI with blue and purple accents
 - **Responsive Layout**: Adapts to different screen sizes
+- **Real-time Updates**: No page refresh needed
 - **Dark Sidebar**: Easy-to-read chat list and user management
-- **Clean Chat Area**: Message bubbles with clear sender information
-- **Professional Colors**: Purple (#667eea) and (#764ba2) gradient theme
+- **Message Bubbles**: Clear sender identification
+- **Smooth Animations**: Professional fade-in and transitions
 
 ## 🛠 Tech Stack
 
@@ -97,6 +106,16 @@ For complete deployment instructions to Render, Railway, Docker, or other platfo
 ## ⚠️ Google OAuth Troubleshooting
 
 If you're getting `Error 400: redirect_uri_mismatch` when signing in, see [GOOGLE_OAUTH_FIX.md](GOOGLE_OAUTH_FIX.md) for detailed instructions on updating Google Cloud Console.
+
+## 📚 Version History & Detailed Features
+
+**For comprehensive details about v2.0 features (typing indicators, user presence, reactions), see [FEATURES_V2.md](FEATURES_V2.md)**
+
+This includes:
+- Architecture and implementation details
+- WebSocket endpoints reference
+- Technical specifications
+- Future enhancements roadmap
 
 ## 🔐 Default Test Users
 
