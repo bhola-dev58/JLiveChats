@@ -11,9 +11,9 @@ let userAvatarCache = {}; // Cache for avatar colors
 
 // Avatar color palette - same as backend
 const AVATAR_COLORS = [
-    "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8",
-    "#F7DC6F", "#BB8FCE", "#85C1E2", "#F8B88B", "#ABEBC6",
-    "#F5B7B1", "#D7BDE2"
+    "#ff0000ff", "#00ffeeff", "#00caf8ff", "#f94700ff", "#00ffbfff",
+    "#ffcc00ff", "#b300ffff", "#00a6ffff", "#ff6a00ff", "#00ff6aff",
+    "#ff1500ff", "#b300ffff"
 ];
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -42,7 +42,7 @@ function initializeChat() {
     connectWebSocket();
 
     // Handle page visibility for presence
-    document.addEventListener('visibilitychange', function() {
+    document.addEventListener('visibilitychange', function () {
         if (document.hidden) {
             broadcastUserOffline();
         } else {
@@ -51,7 +51,7 @@ function initializeChat() {
     });
 
     // Handle window close
-    window.addEventListener('beforeunload', function() {
+    window.addEventListener('beforeunload', function () {
         if (stompClient && stompClient.connected) {
             broadcastUserOffline();
         }
@@ -75,13 +75,13 @@ function setupEventListeners() {
     });
 
     // Typing indicator
-    messageInput.addEventListener('input', function() {
+    messageInput.addEventListener('input', function () {
         if (stompClient && stompClient.connected) {
             sendTypingIndicator(true);
         }
     });
 
-    messageInput.addEventListener('blur', function() {
+    messageInput.addEventListener('blur', function () {
         if (stompClient && stompClient.connected) {
             sendTypingIndicator(false);
         }
@@ -92,7 +92,7 @@ function setupEventListeners() {
         item.addEventListener('click', function () {
             // Stop typing when switching channels
             sendTypingIndicator(false);
-            
+
             // Remove active class from all items
             channelItems.forEach(i => i.classList.remove('active'));
             // Add active class to clicked item
@@ -101,7 +101,7 @@ function setupEventListeners() {
             currentChannel = this.dataset.channel;
             // Update header
             document.querySelector('.channel-name').textContent = '#' + currentChannel;
-            document.querySelector('.channel-description').textContent = 
+            document.querySelector('.channel-description').textContent =
                 `Welcome to the ${currentChannel} channel`;
             // Load messages for this channel
             loadMessages();
@@ -131,7 +131,7 @@ function loadMessages() {
 
             // Auto-scroll to bottom
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
+
             // Update pin count
             updatePinCountBadge(currentChannel);
         })
@@ -174,22 +174,22 @@ function sendMessage() {
             },
             body: `sender=${encodeURIComponent(currentUser)}&content=${encodeURIComponent(content)}`
         })
-        .then(response => response.json())
-        .then(msg => {
-            msg.id = messageId;
-            msg.isCurrentUser = true;
-            displayMessage(msg);
-            messageInput.value = '';
-            messageInput.focus();
+            .then(response => response.json())
+            .then(msg => {
+                msg.id = messageId;
+                msg.isCurrentUser = true;
+                displayMessage(msg);
+                messageInput.value = '';
+                messageInput.focus();
 
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-        });
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
     }
-    
+
     // Clear input and stop typing indicator
     messageInput.value = '';
     messageInput.focus();
@@ -198,7 +198,7 @@ function sendMessage() {
 
 function displayMessage(msg) {
     const messagesContainer = document.getElementById('messagesContainer');
-    
+
     // Remove loading message if present
     const loadingMsg = messagesContainer.querySelector('.loading-message');
     if (loadingMsg) {
@@ -320,9 +320,9 @@ function displayMessage(msg) {
 function displayTypingIndicator() {
     const typingList = Object.keys(typingUsers).filter(u => u !== currentUser);
     const typingIndicatorEl = document.getElementById('typingIndicator');
-    
+
     if (typingList.length > 0) {
-        const typingText = typingList.length === 1 
+        const typingText = typingList.length === 1
             ? `${typingList[0]} is typing...`
             : `${typingList.join(', ')} are typing...`;
         if (typingIndicatorEl) {
@@ -350,13 +350,13 @@ function displayUserPresence() {
         onlineUsers.forEach(user => {
             const li = document.createElement('li');
             li.className = 'user-item';
-            
+
             const indicator = document.createElement('span');
             indicator.className = 'online-indicator';
-            
+
             const nameSpan = document.createElement('span');
             nameSpan.textContent = user;
-            
+
             li.appendChild(indicator);
             li.appendChild(nameSpan);
             onlineListEl.appendChild(li);
@@ -370,19 +370,19 @@ function displayUserPresence() {
         onlineUsers.forEach(user => {
             const userItemDiv = document.createElement('div');
             userItemDiv.className = 'user-item';
-            
+
             const avatarSpan = document.createElement('span');
             avatarSpan.className = 'user-avatar';
             avatarSpan.textContent = getInitials(user);
             avatarSpan.style.backgroundColor = getAvatarColor(user);
             avatarSpan.title = user;
-            
+
             const statusSpan = document.createElement('span');
             statusSpan.className = 'user-status online';
-            
+
             const nameSpan = document.createElement('span');
             nameSpan.textContent = user;
-            
+
             userItemDiv.appendChild(avatarSpan);
             userItemDiv.appendChild(statusSpan);
             userItemDiv.appendChild(nameSpan);
@@ -393,39 +393,39 @@ function displayUserPresence() {
 
 function sendTypingIndicator(isTyping) {
     if (!stompClient || !stompClient.connected) return;
-    
+
     const typingEvent = {
         username: currentUser,
         channel: currentChannel,
         isTyping: isTyping
     };
-    
+
     stompClient.send("/app/user/typing", {}, JSON.stringify(typingEvent));
 }
 
 function broadcastUserOnline() {
     if (!stompClient || !stompClient.connected) return;
-    
+
     const presenceEvent = {
         username: currentUser,
         status: 'online',
         channel: currentChannel,
         onlineCount: onlineUsers.length
     };
-    
+
     stompClient.send("/app/user/online", {}, JSON.stringify(presenceEvent));
 }
 
 function broadcastUserOffline() {
     if (!stompClient || !stompClient.connected) return;
-    
+
     const presenceEvent = {
         username: currentUser,
         status: 'offline',
         channel: currentChannel,
         onlineCount: onlineUsers.length
     };
-    
+
     stompClient.send("/app/user/offline", {}, JSON.stringify(presenceEvent));
 }
 
@@ -448,7 +448,7 @@ function connectWebSocket() {
     stompClient = Stomp.over(socket);
     stompClient.debug = null; // Disable noisy logs
 
-    stompClient.connect({}, function(frame) {
+    stompClient.connect({}, function (frame) {
         console.log('Connected: ' + frame.command);
 
         // Broadcast user online
@@ -468,17 +468,17 @@ function connectWebSocket() {
             .catch(err => console.error('Error loading online users:', err));
 
         // Subscribe to messages topic
-        stompClient.subscribe('/topic/messages', function(messageOutput) {
+        stompClient.subscribe('/topic/messages', function (messageOutput) {
             const msg = JSON.parse(messageOutput.body);
             msg.isCurrentUser = (msg.sender === currentUser);
             displayMessage(msg);
-            
+
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         });
 
         // Subscribe to presence updates
-        stompClient.subscribe('/topic/presence', function(output) {
+        stompClient.subscribe('/topic/presence', function (output) {
             const event = JSON.parse(output.body);
             if (event.status === 'online') {
                 if (!onlineUsers.includes(event.username)) {
@@ -491,7 +491,7 @@ function connectWebSocket() {
         });
 
         // Subscribe to typing indicators
-        stompClient.subscribe('/topic/typing', function(output) {
+        stompClient.subscribe('/topic/typing', function (output) {
             const event = JSON.parse(output.body);
             if (event.isTyping) {
                 typingUsers[event.username] = true;
@@ -502,7 +502,7 @@ function connectWebSocket() {
         });
 
         // Subscribe to message reactions
-        stompClient.subscribe('/topic/reactions', function(output) {
+        stompClient.subscribe('/topic/reactions', function (output) {
             const event = JSON.parse(output.body);
             const messageDiv = document.getElementById(`msg-${event.messageId}`);
             if (messageDiv && event.action === 'add') {
@@ -523,7 +523,7 @@ function connectWebSocket() {
         });
 
         console.log('WebSocket fully subscribed with all features enabled');
-    }, function(error) {
+    }, function (error) {
         console.error('WebSocket connection error:', error);
         console.log('Falling back to polling mode...');
     });
@@ -569,7 +569,7 @@ function searchMessages(keyword, sender = null) {
     if (sender) {
         url += `&sender=${encodeURIComponent(sender)}`;
     }
-    
+
     fetch(url)
         .then(response => response.json())
         .then(results => {
@@ -601,40 +601,40 @@ function displaySearchResults(results, keyword) {
     results.forEach(result => {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message search-result';
-        
+
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
         avatarDiv.textContent = getInitials(result.sender);
         avatarDiv.style.backgroundColor = getAvatarColor(result.sender);
-        
+
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        
+
         const headerDiv = document.createElement('div');
         headerDiv.className = 'message-header';
         headerDiv.textContent = result.sender;
-        
+
         // Highlight the keyword in the message
         const highlightedContent = result.content.replace(
             new RegExp(`(${keyword})`, 'gi'),
             '<mark>$1</mark>'
         );
-        
+
         const textDiv = document.createElement('div');
         textDiv.className = 'message-text';
         textDiv.innerHTML = highlightedContent;
-        
+
         const timeDiv = document.createElement('div');
         timeDiv.className = 'message-time';
         timeDiv.textContent = result.timestamp;
-        
+
         contentDiv.appendChild(headerDiv);
         contentDiv.appendChild(textDiv);
         contentDiv.appendChild(timeDiv);
-        
+
         messageDiv.appendChild(avatarDiv);
         messageDiv.appendChild(contentDiv);
-        
+
         messagesContainer.appendChild(messageDiv);
     });
 }
@@ -655,7 +655,7 @@ function pinMessage(messageId, sender, content, timestamp, channel) {
     formData.append('content', content);
     formData.append('timestamp', timestamp);
     formData.append('channel', channel);
-    
+
     fetch(`/api/messages/${messageId}/pin`, {
         method: 'POST',
         headers: {
@@ -663,21 +663,21 @@ function pinMessage(messageId, sender, content, timestamp, channel) {
         },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Message pinned:', data);
-        // Update UI - add pin icon to message
-        const messageDiv = document.getElementById(`msg-${messageId}`);
-        if (messageDiv) {
-            const pinIcon = document.createElement('span');
-            pinIcon.className = 'pin-icon';
-            pinIcon.innerHTML = '📌';
-            pinIcon.title = 'Pinned';
-            messageDiv.insertBefore(pinIcon, messageDiv.firstChild);
-        }
-        showNotification('Message pinned!');
-    })
-    .catch(error => console.error('Error pinning message:', error));
+        .then(response => response.json())
+        .then(data => {
+            console.log('Message pinned:', data);
+            // Update UI - add pin icon to message
+            const messageDiv = document.getElementById(`msg-${messageId}`);
+            if (messageDiv) {
+                const pinIcon = document.createElement('span');
+                pinIcon.className = 'pin-icon';
+                pinIcon.innerHTML = '📌';
+                pinIcon.title = 'Pinned';
+                messageDiv.insertBefore(pinIcon, messageDiv.firstChild);
+            }
+            showNotification('Message pinned!');
+        })
+        .catch(error => console.error('Error pinning message:', error));
 }
 
 /**
@@ -687,20 +687,20 @@ function unpinMessage(messageId, channel) {
     fetch(`/api/messages/${messageId}/pin?channel=${encodeURIComponent(channel)}`, {
         method: 'DELETE'
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Message unpinned:', data);
-        // Update UI - remove pin icon
-        const messageDiv = document.getElementById(`msg-${messageId}`);
-        if (messageDiv) {
-            const pinIcon = messageDiv.querySelector('.pin-icon');
-            if (pinIcon) {
-                pinIcon.remove();
+        .then(response => response.json())
+        .then(data => {
+            console.log('Message unpinned:', data);
+            // Update UI - remove pin icon
+            const messageDiv = document.getElementById(`msg-${messageId}`);
+            if (messageDiv) {
+                const pinIcon = messageDiv.querySelector('.pin-icon');
+                if (pinIcon) {
+                    pinIcon.remove();
+                }
             }
-        }
-        showNotification('Message unpinned!');
-    })
-    .catch(error => console.error('Error unpinning message:', error));
+            showNotification('Message unpinned!');
+        })
+        .catch(error => console.error('Error unpinning message:', error));
 }
 
 /**
@@ -736,40 +736,40 @@ function displayPinnedMessages(pinnedMessages, channel) {
     pinnedMessages.forEach(pinned => {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message pinned-message';
-        
+
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
         avatarDiv.textContent = getInitials(pinned.sender);
         avatarDiv.style.backgroundColor = getAvatarColor(pinned.sender);
-        
+
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        
+
         const headerDiv = document.createElement('div');
         headerDiv.className = 'message-header';
         headerDiv.textContent = pinned.sender;
-        
+
         const textDiv = document.createElement('div');
         textDiv.className = 'message-text';
         textDiv.textContent = pinned.content;
-        
+
         const timeDiv = document.createElement('div');
         timeDiv.className = 'message-time';
         timeDiv.innerHTML = `${pinned.timestamp} • Pinned by ${pinned.pinnedBy}`;
-        
+
         const unpinBtn = document.createElement('button');
         unpinBtn.className = 'unpin-btn';
         unpinBtn.textContent = 'Unpin';
         unpinBtn.onclick = () => unpinMessage(pinned.messageId, channel);
-        
+
         contentDiv.appendChild(headerDiv);
         contentDiv.appendChild(textDiv);
         contentDiv.appendChild(timeDiv);
         contentDiv.appendChild(unpinBtn);
-        
+
         messageDiv.appendChild(avatarDiv);
         messageDiv.appendChild(contentDiv);
-        
+
         messagesContainer.appendChild(messageDiv);
     });
 }
@@ -782,11 +782,11 @@ function showNotification(message) {
     notification.className = 'notification';
     notification.textContent = message;
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.classList.add('show');
     }, 100);
-    
+
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => notification.remove(), 300);
@@ -816,10 +816,10 @@ function editMessage(messageId, currentContent) {
     if (newContent === null || newContent.trim() === '') {
         return;
     }
-    
+
     const formData = new URLSearchParams();
     formData.append('newContent', newContent.trim());
-    
+
     fetch(`/api/messages/${messageId}`, {
         method: 'PUT',
         headers: {
@@ -827,28 +827,28 @@ function editMessage(messageId, currentContent) {
         },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Message edited:', data);
-        // Update message display
-        const messageDiv = document.getElementById(`msg-${messageId}`);
-        if (messageDiv) {
-            const textDiv = messageDiv.querySelector('.message-text');
-            if (textDiv) {
-                textDiv.textContent = data.newContent;
+        .then(response => response.json())
+        .then(data => {
+            console.log('Message edited:', data);
+            // Update message display
+            const messageDiv = document.getElementById(`msg-${messageId}`);
+            if (messageDiv) {
+                const textDiv = messageDiv.querySelector('.message-text');
+                if (textDiv) {
+                    textDiv.textContent = data.newContent;
+                }
+                // Add edited label
+                const editedLabel = document.createElement('span');
+                editedLabel.className = 'edited-label';
+                editedLabel.textContent = 'edited';
+                messageDiv.querySelector('.message-time').appendChild(editedLabel);
             }
-            // Add edited label
-            const editedLabel = document.createElement('span');
-            editedLabel.className = 'edited-label';
-            editedLabel.textContent = 'edited';
-            messageDiv.querySelector('.message-time').appendChild(editedLabel);
-        }
-        showNotification('Message edited!');
-    })
-    .catch(error => {
-        console.error('Error editing message:', error);
-        showNotification('Error editing message');
-    });
+            showNotification('Message edited!');
+        })
+        .catch(error => {
+            console.error('Error editing message:', error);
+            showNotification('Error editing message');
+        });
 }
 
 /**
@@ -858,34 +858,34 @@ function deleteMessage(messageId) {
     if (!confirm('Delete this message? This action cannot be undone.')) {
         return;
     }
-    
+
     fetch(`/api/messages/${messageId}`, {
         method: 'DELETE'
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Message deleted:', data);
-        const messageDiv = document.getElementById(`msg-${messageId}`);
-        if (messageDiv) {
-            messageDiv.style.opacity = '0.5';
-            const textDiv = messageDiv.querySelector('.message-text');
-            if (textDiv) {
-                textDiv.textContent = '[Message deleted]';
-                textDiv.style.fontStyle = 'italic';
-                textDiv.style.color = '#999';
+        .then(response => response.json())
+        .then(data => {
+            console.log('Message deleted:', data);
+            const messageDiv = document.getElementById(`msg-${messageId}`);
+            if (messageDiv) {
+                messageDiv.style.opacity = '0.5';
+                const textDiv = messageDiv.querySelector('.message-text');
+                if (textDiv) {
+                    textDiv.textContent = '[Message deleted]';
+                    textDiv.style.fontStyle = 'italic';
+                    textDiv.style.color = '#999';
+                }
+                // Hide edit/delete buttons
+                const actionsDiv = messageDiv.querySelector('.message-actions');
+                if (actionsDiv) {
+                    actionsDiv.style.display = 'none';
+                }
             }
-            // Hide edit/delete buttons
-            const actionsDiv = messageDiv.querySelector('.message-actions');
-            if (actionsDiv) {
-                actionsDiv.style.display = 'none';
-            }
-        }
-        showNotification('Message deleted!');
-    })
-    .catch(error => {
-        console.error('Error deleting message:', error);
-        showNotification('Error deleting message');
-    });
+            showNotification('Message deleted!');
+        })
+        .catch(error => {
+            console.error('Error deleting message:', error);
+            showNotification('Error deleting message');
+        });
 }
 
 /**
@@ -905,15 +905,15 @@ function setupMentionAutocomplete() {
     const messageInput = document.getElementById('messageInput') || document.getElementById('message');
     let mentionStartIndex = -1;
     let autocompleteUsers = [];
-    
-    messageInput.addEventListener('input', function(e) {
+
+    messageInput.addEventListener('input', function (e) {
         const text = this.value;
         const cursorPos = this.selectionStart;
-        
+
         // Find if we're currently typing a mention
         const textBeforeCursor = text.substring(0, cursorPos);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-        
+
         if (lastAtIndex !== -1) {
             const mentionText = textBeforeCursor.substring(lastAtIndex + 1);
             // Show autocomplete if @ is followed by letters
@@ -930,9 +930,9 @@ function setupMentionAutocomplete() {
             hideMentionAutocomplete();
         }
     });
-    
+
     // Handle tab/enter to complete mention
-    messageInput.addEventListener('keydown', function(e) {
+    messageInput.addEventListener('keydown', function (e) {
         if (e.key === 'Tab' || e.key === 'Enter') {
             const dropdown = document.getElementById('mentionDropdown');
             if (dropdown && dropdown.style.display !== 'none') {
@@ -957,17 +957,17 @@ function showMentionAutocomplete(partialName, cursorPos) {
         dropdown.className = 'mention-dropdown';
         document.getElementById('messageForm').appendChild(dropdown);
     }
-    
+
     // Get all online users (you may need to fetch from backend)
     const users = Array.from(document.querySelectorAll('.user-item')).map(item => {
         return item.textContent.trim();
     });
-    
+
     // Filter users matching the partial name
     const matches = users.filter(u => u.toLowerCase().startsWith(partialName.toLowerCase()));
-    
+
     if (matches.length > 0) {
-        dropdown.innerHTML = matches.map((user, index) => 
+        dropdown.innerHTML = matches.map((user, index) =>
             `<div class="mention-item ${index === 0 ? 'selected' : ''}" data-user="${user}" onclick="completeMention('${user}', ${cursorPos}, ${cursorPos})">${user}</div>`
         ).join('');
         dropdown.style.display = 'block';
@@ -992,15 +992,15 @@ function hideMentionAutocomplete() {
 function completeMention(username, startIndex, endIndex) {
     const messageInput = document.getElementById('message');
     const text = messageInput.value;
-    
+
     // Replace the partial mention with the complete mention
     const before = text.substring(0, startIndex);
     const after = text.substring(endIndex);
     messageInput.value = before + '@' + username + ' ' + after;
-    
+
     // Move cursor to after the mention
     messageInput.selectionStart = messageInput.selectionEnd = before.length + username.length + 2;
-    
+
     hideMentionAutocomplete();
 }
 
@@ -1016,7 +1016,7 @@ function openThread(messageId, parentSender, parentContent) {
                 return fetch(`/api/messages/${messageId}/thread`, {
                     method: 'POST'
                 })
-                .then(r => r.json());
+                    .then(r => r.json());
             }
             return response.json();
         })
@@ -1041,14 +1041,14 @@ function displayThreadModal(thread, messageId, parentSender, parentContent) {
         modal.className = 'modal-overlay';
         document.body.appendChild(modal);
     }
-    
+
     // Close modal on background click
-    modal.onclick = function(e) {
+    modal.onclick = function (e) {
         if (e.target === modal) {
             closeThread();
         }
     };
-    
+
     // Build thread content
     const contentHtml = `
         <div class="modal-content thread-modal">
@@ -1083,10 +1083,10 @@ function displayThreadModal(thread, messageId, parentSender, parentContent) {
             </div>
         </div>
     `;
-    
+
     modal.innerHTML = contentHtml;
     modal.style.display = 'flex';
-    
+
     // Focus on input
     setTimeout(() => {
         const input = document.getElementById('threadReplyInput');
@@ -1100,14 +1100,14 @@ function displayThreadModal(thread, messageId, parentSender, parentContent) {
 function sendThreadReply(threadId) {
     const input = document.getElementById('threadReplyInput');
     const content = input.value.trim();
-    
+
     if (!content) {
         return;
     }
-    
+
     const formData = new URLSearchParams();
     formData.append('replyContent', content);
-    
+
     fetch(`/api/threads/${threadId}/reply`, {
         method: 'POST',
         headers: {
@@ -1115,18 +1115,18 @@ function sendThreadReply(threadId) {
         },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Reply sent:', data);
-        input.value = '';
-        // Refresh thread to show new reply
-        openThread(data.threadId);
-        showNotification('Reply sent!');
-    })
-    .catch(error => {
-        console.error('Error sending reply:', error);
-        showNotification('Error sending reply');
-    });
+        .then(response => response.json())
+        .then(data => {
+            console.log('Reply sent:', data);
+            input.value = '';
+            // Refresh thread to show new reply
+            openThread(data.threadId);
+            showNotification('Reply sent!');
+        })
+        .catch(error => {
+            console.error('Error sending reply:', error);
+            showNotification('Error sending reply');
+        });
 }
 
 /**
@@ -1146,7 +1146,7 @@ function sendDM(recipient, content) {
     const formData = new URLSearchParams();
     formData.append('recipient', recipient);
     formData.append('content', content);
-    
+
     fetch('/api/dms/send', {
         method: 'POST',
         headers: {
@@ -1154,18 +1154,18 @@ function sendDM(recipient, content) {
         },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('DM sent:', data);
-        // Clear input and refresh conversation
-        document.getElementById('dmInput').value = '';
-        loadDMConversation(recipient);
-        showNotification('Message sent!');
-    })
-    .catch(error => {
-        console.error('Error sending DM:', error);
-        showNotification('Error sending message');
-    });
+        .then(response => response.json())
+        .then(data => {
+            console.log('DM sent:', data);
+            // Clear input and refresh conversation
+            document.getElementById('dmInput').value = '';
+            loadDMConversation(recipient);
+            showNotification('Message sent!');
+        })
+        .catch(error => {
+            console.error('Error sending DM:', error);
+            showNotification('Error sending message');
+        });
 }
 
 /**
@@ -1195,7 +1195,7 @@ function displayDMConversation(messages, otherUser) {
         dmPanel.className = 'dm-panel';
         document.body.appendChild(dmPanel);
     }
-    
+
     const messagesHtml = messages.map(msg => `
         <div class="dm-message ${msg.sender === currentUser ? 'own' : ''}">
             <div class="dm-sender">${msg.sender}</div>
@@ -1203,7 +1203,7 @@ function displayDMConversation(messages, otherUser) {
             <div class="dm-time">${msg.timestamp}</div>
         </div>
     `).join('');
-    
+
     dmPanel.innerHTML = `
         <div class="dm-header">
             <h3>💬 ${otherUser}</h3>
@@ -1217,7 +1217,7 @@ function displayDMConversation(messages, otherUser) {
             <button onclick="sendDM('${otherUser}', document.getElementById('dmInput').value)" class="dm-send-btn">Send</button>
         </div>
     `;
-    
+
     dmPanel.style.display = 'flex';
     // Scroll to bottom
     const messagesDiv = dmPanel.querySelector('.dm-messages');
@@ -1254,12 +1254,12 @@ function loadDMList() {
 function displayDMList(dmUsers) {
     const dmListEl = document.getElementById('dmList');
     if (!dmListEl) return;
-    
+
     if (dmUsers.size === 0) {
         dmListEl.innerHTML = '<li class="empty-state">No messages yet</li>';
         return;
     }
-    
+
     dmListEl.innerHTML = Array.from(dmUsers).map(user => `
         <li class="dm-item" onclick="loadDMConversation('${user}')">
             <span class="dm-user">${user}</span>
@@ -1298,12 +1298,12 @@ function toggleTheme() {
     fetch('/api/theme/toggle', {
         method: 'POST'
     })
-    .then(response => response.json())
-    .then(data => {
-        applyTheme(data.theme);
-        showNotification(`Switched to ${data.theme} theme!`);
-    })
-    .catch(error => console.error('Error toggling theme:', error));
+        .then(response => response.json())
+        .then(data => {
+            applyTheme(data.theme);
+            showNotification(`Switched to ${data.theme} theme!`);
+        })
+        .catch(error => console.error('Error toggling theme:', error));
 }
 
 // Utility functions
@@ -1396,19 +1396,19 @@ function uploadVoiceMessage(channel, duration, audioUrl) {
             audioUrl: audioUrl
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        showNotification(`Voice message uploaded! (${data.duration})`);
-        // Broadcast to other users
-        if (window.stompClient) {
-            window.stompClient.send("/app/send", {}, JSON.stringify({
-                sender: currentUser,
-                content: `🎤 Voice message: ${data.duration}`,
-                type: "voice"
-            }));
-        }
-    })
-    .catch(error => console.error('Error uploading voice message:', error));
+        .then(response => response.json())
+        .then(data => {
+            showNotification(`Voice message uploaded! (${data.duration})`);
+            // Broadcast to other users
+            if (window.stompClient) {
+                window.stompClient.send("/app/send", {}, JSON.stringify({
+                    sender: currentUser,
+                    content: `🎤 Voice message: ${data.duration}`,
+                    type: "voice"
+                }));
+            }
+        })
+        .catch(error => console.error('Error uploading voice message:', error));
 }
 
 /**
@@ -1458,11 +1458,11 @@ function banUser(username, reason) {
             reason: reason
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        showNotification(`User ${username} banned: ${reason}`);
-    })
-    .catch(error => console.error('Error banning user:', error));
+        .then(response => response.json())
+        .then(data => {
+            showNotification(`User ${username} banned: ${reason}`);
+        })
+        .catch(error => console.error('Error banning user:', error));
 }
 
 /**
@@ -1476,9 +1476,9 @@ function muteUser(username) {
             username: username
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        showNotification(`User ${username} muted`);
-    })
-    .catch(error => console.error('Error muting user:', error));
+        .then(response => response.json())
+        .then(data => {
+            showNotification(`User ${username} muted`);
+        })
+        .catch(error => console.error('Error muting user:', error));
 }
