@@ -1,308 +1,221 @@
-# JLiveChats - Spring Boot Real-time Chat Application
-
-Modern, professional real-time chat application built with **Spring Boot 3.3.0** and **WebSocket**, featuring user authentication, live messaging, multi-user support, and real-time collaboration features.
-
-> **v2.0 Released!** 🎉 Multi-user presence, typing indicators, message reactions, and more!  
-> See [FEATURES_V2.md](FEATURES_V2.md) for detailed new features.
-
-## ✨ Features
-
-### User Authentication
-- **Login System**: Secure user login with credentials validation
-- **Registration**: Create new accounts with email verification
-- **Session Management**: Automatic login state tracking
-- **User Profiles**: Display current user information
-
-### Real-time Chat (Multi-User)
-- **Real-time Messaging**: Send and receive messages instantly
-- **Channel Support**: Multiple channels for organized conversations
-- **User Presence**: See who's online in real-time
-- **Online User Count**: Active participant tracking
-- **Message History**: View recent chat history (50 messages)
-
-### Collaboration Features (v2.0)
-- **Typing Indicators**: See when others are typing in real-time
-- **Message Reactions**: Add emoji reactions to messages
-- **User List**: See all active users in sidebar
-- **Online Status**: Visual indicators for online/offline users
-- **Auto-sync**: Changes sync across all connected clients
-
-### User Interface
-- **Modern Design**: Professional gradient-based UI with blue and purple accents
-- **Responsive Layout**: Adapts to different screen sizes
-- **Real-time Updates**: No page refresh needed
-- **Dark Sidebar**: Easy-to-read chat list and user management
-- **Message Bubbles**: Clear sender identification
-- **Smooth Animations**: Professional fade-in and transitions
-
-## 🛠 Tech Stack
-
-- **Backend Framework**: Spring Boot 3.3.0
-- **Real-time Communication**: WebSocket
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Build Tool**: Maven 3.8+
-- **Language**: Java 17
-- **Database**: H2 (in-memory)
-- **Server**: Embedded Tomcat
-
-## 📋 Prerequisites
-
-- **Java 17** or higher installed
-- **Maven** 3.8+ installed
-- **Git** (for cloning the repository)
-
-## 🚀 Getting Started
-
-### Option 1: Run from Command Line
-
-1. Navigate to project directory:
-   ```bash
-   cd JLiveChats
-   ```
-
-2. Build the project:
-   ```bash
-   mvn clean package
-   ```
-
-3. Set environment variables (optional for OAuth):
-   ```bash
-   export GOOGLE_CLIENT_ID="your-client-id"
-   export GOOGLE_CLIENT_SECRET="your-client-secret"
-   ```
-
-4. Run the application:
-   ```bash
-   mvn spring-boot:run
-   ```
-
-5. Access the application:
-   - Open browser: `http://localhost:8080`
-
-### Option 2: Run JAR File
-
-```bash
-mvn clean package
-java -jar target/jlivechats-1.0.0.jar
-```
-
-### Option 3: Run in IDE
-
-1. Open project in IntelliJ IDEA or Eclipse
-2. Right-click on `JLiveChatsApplication.java` (in `src/main/java/com/jlivechats/`)
-3. Select "Run JLiveChatsApplication.main()"
-
-## 🌐 Deployment
-
-For complete deployment instructions to Render, Railway, Docker, or other platforms, see [DEPLOYMENT.md](DEPLOYMENT.md).
-
-**Quick Deploy to Render (Free):**
-1. Go to [render.com](https://render.com)
-2. Create new Web Service from GitHub
-3. Select this repository
-4. Set environment variables (see DEPLOYMENT.md)
-5. Deploy!
-
-## ⚠️ Google OAuth Troubleshooting
-
-If you're getting `Error 400: redirect_uri_mismatch` when signing in, see [GOOGLE_OAUTH_FIX.md](GOOGLE_OAUTH_FIX.md) for detailed instructions on updating Google Cloud Console.
-
-## 📚 Version History & Detailed Features
-
-**For comprehensive details about v2.0 features (typing indicators, user presence, reactions), see [FEATURES_V2.md](FEATURES_V2.md)**
-
-This includes:
-- Architecture and implementation details
-- WebSocket endpoints reference
-- Technical specifications
-- Future enhancements roadmap
-
-## 🔐 Default Test Users
-
-The application comes with pre-configured test accounts:
-
-| Username | Password | Notes |
-|----------|----------|-------|
-| bhola | password123 | Admin user |
-| john | john123 | Regular user |
-| jane | jane123 | Regular user |
-
-Or create new accounts using the registration screen.
-
-## 📱 UI Components
-
-### Login Screen
-- Email/Username input field
-- Password input field
-- Secure authentication
-- Link to registration screen
-- Beautiful gradient background
-
-### Registration Screen
-- Username input
-- Email address input
-- Password input with strength indicator
-- Password confirmation
-- Link back to login screen
-
-### Chat Interface
-- **Left Sidebar**:
-  - Current user profile
-  - List of available channels
-  - Online users with status indicators
-  - Logout button
-
-- **Main Chat Area**:
-  - Channel header with description
-  - Message display area with sender information
-  - Message timestamps
-  - Input field for new messages
-  - Send button with keyboard shortcut (Enter)
-
-## 🎨 Color Scheme
-
-| Element | Color | Hex |
-|---------|-------|-----|
-| Primary Accent | Blue | #667eea |
-| Secondary Accent | Purple | #764ba2 |
-| Background | Dark Blue-Gray | #2c3e50 |
-| Text Primary | White | #ffffff |
-| Text Secondary | Light Gray | #e0e0e0 |
-| Borders | Light Gray | #e0e0e0 |
-
-## 🔄 Message Flow
-
-1. User logs in with credentials
-2. Authentication Service validates credentials
-3. User redirected to main chat interface
-4. Select a channel to view conversation
-5. Type message and press Enter or click Send
-6. Message added to Message Service
-7. Message displayed in chat area with timestamp
-
-## 📦 Project Structure
-
-```
-src/
-├── main/
-│   ├── java/
-│   │   └── com/jlivechats/
-│   │       ├── JavaFXApplication.java       # Main entry point
-│   │       ├── ui/
-│   │       │   ├── LoginView.java           # Login screen
-│   │       │   ├── RegisterView.java        # Registration screen
-│   │       │   ├── ChatView.java            # Main chat interface
-│   │       │   └── SceneManager.java        # Scene navigation
-│   │       ├── service/
-│   │       │   ├── AuthenticationService.java  # User authentication
-│   │       │   └── MessageService.java        # Message management
-│   │       └── config/
-│   │           └── (Spring configuration files)
-│   └── resources/
-│       ├── styles/
-│       │   └── application.css           # JavaFX styles
-│       └── static/
-│           └── (Web resources, optional)
-```
-
-## 🎯 Usage
-
-### Login
-1. Start the application
-2. Enter username and password
-3. Click "Sign In" or press Enter
-4. Invalid credentials will show error message
-
-### Register New Account
-1. Click "Sign Up" link on login screen
-2. Fill in all fields (username, email, password)
-3. Confirm password matches
-4. Click "Create Account"
-
-### Send Messages
-1. Select a channel from left sidebar
-2. Type message in input field at bottom
-3. Press Enter or click Send button
-4. Message appears in chat with timestamp
-
-### Logout
-1. Click "Logout" button in top-left sidebar
-2. Redirected back to login screen
-
-## 🔒 Security Features
-
-- **Password Validation**: Passwords must be minimum 6 characters
-- **Username Validation**: Usernames must be minimum 3 characters
-- **Email Validation**: Email format validation on registration
-- **Session Management**: Current user tracking with AuthenticationService
-- **Data Privacy**: In-memory storage (no external database exposure)
-
-## ⚙️ Configuration
-
-### Font and Styling
-Edit `src/main/resources/styles/application.css` to customize:
-- Font families
-- Colors and gradients
-- Button styles
-- Text field styling
-
-### Window Size
-Modify in `JavaFXApplication.java`:
-```java
-stage.setWidth(1200);
-stage.setHeight(700);
-stage.setMinWidth(800);
-stage.setMinHeight(600);
-```
-
-### Default Channels
-Edit in `ChatView.java`:
-```java
-ObservableList<String> channels = FXCollections.observableArrayList(
-    "#general", "#random", "#announcements", "#help"
-);
-```
-
-## 🐛 Troubleshooting
-
-### Application won't start
-- Ensure Java 17+ is installed: `java -version`
-- Check Maven is installed: `mvn -version`
-- Try: `mvn clean install`
-
-### JavaFX not loading
-- Verify JavaFX dependency in pom.xml
-- Run: `mvn dependency:resolve`
-
-### UI appears blank
-- Check screen resolution is at least 800x600
-- Verify CSS file is in resources/styles/
-
-## 📈 Future Enhancements
-
-- [ ] WebSocket integration for real-time messaging
-- [ ] Database persistence (SQLite/PostgreSQL)
-- [ ] User avatar uploads
-- [ ] Message search functionality
-- [ ] Chat notifications
-- [ ] File sharing capability
-- [ ] Emoji picker
-- [ ] Dark/Light theme toggle
-- [ ] User preferences settings
-- [ ] Group chat support
-
-## 📄 License
-
-This project is open-source and available for educational purposes.
-
-## 👨‍💻 Author
-
-Created by: **Bhola Yadav**  
-USN: 1CR23CS044  
-Section: K  
-Branch: Computer Science Engineering
+# 💬 JLiveChats — Real-Time Chat Application
+
+> A modern, production-ready real-time web chat application built with **Spring Boot 3.3.0**, **WebSockets (STOMP)**, and **Google OAuth2** — featuring instant multi-user messaging, secure authentication, and a responsive chat UI.
+
+![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=java)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-brightgreen?style=flat-square&logo=springboot)
+![WebSocket](https://img.shields.io/badge/WebSocket-STOMP-blue?style=flat-square)
+![OAuth2](https://img.shields.io/badge/Auth-Google%20OAuth2-red?style=flat-square&logo=google)
+![License](https://img.shields.io/badge/License-Educational-lightgrey?style=flat-square)
 
 ---
 
-**Enjoy your new JLiveChats application!** 🎉
+## ✨ Features
 
+### 🔐 Authentication
+- **Custom Login & Registration** — with BCrypt password hashing via Spring Security
+- **Google OAuth2 Sign-In** — one-click sign-in with your Google account
+- **Session Management** — secure HTTP session tracking after login
+- **Duplicate User Prevention** — username/email uniqueness enforced at the database level
+
+### 💬 Real-Time Messaging
+- **WebSocket + STOMP** — instant bidirectional message delivery
+- **SockJS Fallback** — works even in environments where WebSocket is blocked
+- **Multi-Channel Support** — `#general`, `#random`, `#announcements`, `#help`
+- **Message Persistence** — chat history stored in the H2 database (last 50 messages)
+- **Typing Indicators** — see when someone else is typing in real-time
+
+### 👥 User Presence
+- **Online/Offline Status** — live tracking of who is connected
+- **Active User List** — shown in the sidebar in real-time
+- **User Join/Leave Notifications** — broadcast events on connect/disconnect
+
+### 🎨 UI / UX
+- **Responsive Design** — works on desktop and mobile browsers
+- **Gradient Dark Theme** — modern blue-purple sidebar + clean chat area
+- **Message Bubbles** — clear visual separation for sent vs. received messages
+- **Smooth Animations** — fade-in transitions and micro-interactions
+- **Emoji Reactions** — react to messages with emojis
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend Framework | Spring Boot 3.3.0 |
+| Language | Java 21 |
+| Real-Time | WebSocket + STOMP + SockJS |
+| Security | Spring Security + Google OAuth2 |
+| Database | H2 In-Memory (JPA / Hibernate) |
+| Templating | Thymeleaf |
+| Frontend | HTML5 + CSS3 + Vanilla JavaScript |
+| Build Tool | Maven 3.8+ |
+| Server | Embedded Apache Tomcat 10 |
+
+---
+
+## 📁 Project Structure
+
+```
+JLiveChats/
+├── src/main/java/com/jlivechats/
+│   ├── JLiveChatsApplication.java          # Spring Boot entry point
+│   ├── config/
+│   │   ├── SecurityConfig.java             # Spring Security + OAuth2 config
+│   │   ├── WebSocketConfig.java            # STOMP / SockJS WebSocket config
+│   │   └── SessionAuthenticationFilter.java # Session → Security bridge
+│   ├── controller/
+│   │   ├── WebController.java              # Login, Register, Chat page routes
+│   │   └── WebSocketController.java        # STOMP message handlers
+│   ├── model/
+│   │   ├── User.java                       # User JPA entity
+│   │   └── ChatMessage.java                # Message JPA entity
+│   ├── repository/
+│   │   ├── UserRepository.java             # JPA Repository for users
+│   │   └── ChatMessageRepository.java      # JPA Repository for messages
+│   └── service/
+│       └── AuthenticationService.java      # User auth + registration logic
+├── src/main/resources/
+│   ├── templates/                          # Thymeleaf HTML templates
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   └── chat.html
+│   ├── static/                             # Static assets
+│   │   ├── css/style.css
+│   │   ├── js/
+│   │   ├── index.html
+│   │   └── script.js
+│   └── application.properties              # App configuration
+├── pom.xml
+├── Dockerfile
+├── render.yaml
+└── README.md
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Java 17+** → `java -version`
+- **Maven 3.8+** → `mvn -version`
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/bhola-dev58/JLiveChats.git
+cd JLiveChats
+```
+
+### 2. Build
+```bash
+mvn clean package
+```
+
+### 3. Run
+```bash
+java -jar target/jlivechats-1.0.0.jar
+```
+
+### 4. Open in Browser
+```
+http://localhost:8080
+```
+
+> The app will redirect you to `/login`. Register a new account or sign in with Google.
+
+---
+
+## 🔑 Google OAuth2 Setup (Optional)
+
+By default, the Google credentials in `application.properties` are pre-configured for local use. If you want to use your own Google Cloud credentials:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create an OAuth2 Client ID
+3. Add `http://localhost:8080/login/oauth2/code/google` as an Authorized Redirect URI
+4. Update `application.properties`:
+```properties
+spring.security.oauth2.client.registration.google.client-id=YOUR_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_CLIENT_SECRET
+```
+
+> For full setup instructions, see [GOOGLE_OAUTH_FIX.md](GOOGLE_OAUTH_FIX.md)
+
+---
+
+## 🌐 WebSocket Endpoints
+
+| Endpoint | Type | Description |
+|----------|------|-------------|
+| `/ws` | WebSocket | SockJS connection endpoint |
+| `/app/sendMessage` | STOMP Publish | Send a chat message |
+| `/app/typing` | STOMP Publish | Broadcast typing indicator |
+| `/topic/messages` | STOMP Subscribe | Receive new messages |
+| `/topic/users` | STOMP Subscribe | Receive user presence updates |
+
+---
+
+## 🌍 Deployment
+
+### Docker
+```bash
+docker build -t jlivechats .
+docker run -p 8080:8080 jlivechats
+```
+
+### Render / Railway (Free Cloud)
+- See [DEPLOYMENT.md](DEPLOYMENT.md) for step-by-step cloud deployment instructions.
+
+---
+
+## 🔒 Security
+
+- Passwords are hashed with **BCrypt** before being stored in the database
+- Sessions are secured via **Spring Security's filter chain**
+- OAuth2 tokens are managed by **Spring Security OAuth2 Client**
+- CSRF protection is disabled intentionally to support WebSocket connections
+
+---
+
+## 🐛 Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| Port 8080 already in use | Run `lsof -i :8080` and kill the process, or change port in `application.properties` |
+| Google sign-in error 400 | See [GOOGLE_OAUTH_FIX.md](GOOGLE_OAUTH_FIX.md) |
+| App won't start | Ensure Java 17+ is installed: `java -version` |
+| Messages not updating | Check browser console for WebSocket connection errors |
+
+---
+
+## 📈 Roadmap
+
+- [x] WebSocket real-time messaging
+- [x] Google OAuth2 sign-in
+- [x] BCrypt password encryption
+- [x] Database-backed user registration
+- [x] Typing indicators
+- [x] Multi-channel support
+- [ ] Direct Messages (1-on-1)
+- [ ] File/image sharing
+- [ ] PostgreSQL migration (production)
+- [ ] Push notifications
+- [ ] Admin dashboard
+
+---
+
+## 👨‍💻 Author
+
+**Bhola Yadav**  
+USN: `1CR23CS044` | Section: K | Branch: Computer Science Engineering  
+[GitHub](https://github.com/bhola-dev58)
+
+---
+
+## 📄 License
+
+This project is open-source and available for **educational purposes**.
+
+---
+
+> **JLiveChats** — Built with ❤️ using Spring Boot, WebSockets, and Google OAuth2.

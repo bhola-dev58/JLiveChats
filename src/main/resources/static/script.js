@@ -52,19 +52,23 @@ function connect(event) {
 }
 
 function onConnected() {
-    stompClient.subscribe('/topic/public', onMessageReceived);
+    stompClient.subscribe('/topic/messages', onMessageReceived);
 
     stompClient.send("/app/chat.addUser",
         {},
         JSON.stringify({ sender: username, type: 'JOIN' })
     );
 
-    // Initial history fetch
-    fetch('/api/history')
+    // Initial history fetch from ChatApiController
+    fetch('/api/history?channel=general')
         .then(response => response.json())
         .then(messages => {
-            messages.forEach(msg => displayMessage(msg));
-        });
+            messages.forEach(msg => {
+                msg.type = msg.type || 'CHAT';
+                displayMessage(msg);
+            });
+        })
+        .catch(err => console.error('Error loading history:', err));
 }
 
 function onError(error) {

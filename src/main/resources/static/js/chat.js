@@ -21,10 +21,15 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function initializeChat() {
-    // Get username from page
-    const userElement = document.querySelector('.user-name');
-    if (userElement) {
-        currentUser = userElement.textContent.trim();
+    // Get username from hidden input (set by Thymeleaf) or fallback to .user-name
+    const hiddenInput = document.getElementById('loggedInUsername');
+    if (hiddenInput && hiddenInput.value) {
+        currentUser = hiddenInput.value.trim();
+    } else {
+        const userElement = document.querySelector('.user-name');
+        if (userElement) {
+            currentUser = userElement.textContent.trim();
+        }
     }
 
     // Load initial messages
@@ -108,7 +113,7 @@ function setupEventListeners() {
 }
 
 function loadMessages() {
-    fetch('/api/messages')
+    fetch(`/api/history?channel=${encodeURIComponent(currentChannel)}`)
         .then(response => response.json())
         .then(messages => {
             const messagesContainer = document.getElementById('messagesContainer');
@@ -120,6 +125,7 @@ function loadMessages() {
             }
 
             messages.forEach(msg => {
+                msg.isCurrentUser = (msg.sender === currentUser);
                 displayMessage(msg);
             });
 
@@ -221,19 +227,26 @@ function displayMessage(msg) {
 
     const textDiv = document.createElement('div');
     textDiv.className = 'message-text';
+    textDiv.style.position = 'relative'; // Ensure bubble is the anchor for reactions
     textDiv.innerHTML = highlightMentions(msg.content);
 
     const timeDiv = document.createElement('div');
     timeDiv.className = 'message-time';
-    timeDiv.textContent = msg.timestamp || new Date().toLocaleTimeString();
+    timeDiv.textContent = msg.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const reactionsDiv = document.createElement('div');
     reactionsDiv.className = 'message-reactions';
     reactionsDiv.innerHTML = `
         <span class="reaction-btn" onclick="addReaction(this)">😊</span>
-        <span class="pin-btn" title="Pin message" onclick="pinMessage('${msg.id || messageDiv.id}', '${msg.sender}', '${msg.content.replace(/'/g, "\\'")}', '${msg.timestamp}', '${msg.channel}')">📌</span>
-        <span class="thread-btn" title="Reply in thread" onclick="openThread('${msg.id || messageDiv.id}', '${msg.sender}', '${msg.content.replace(/'/g, "\\'")}')">💬</span>
+        <span class="pin-btn" title="Pin message" onclick="pinMessage('${msg.id || ''}', '${msg.sender}', '${msg.content.replace(/'/g, "\\'")}', '${msg.timestamp}', '${msg.channel}')">📌</span>
+        <span class="thread-btn" title="Reply in thread" onclick="openThread('${msg.id || ''}', '${msg.sender}', '${msg.content.replace(/'/g, "\\'")}')">💬</span>
     `;
+
+    textDiv.appendChild(reactionsDiv);
+
+    contentDiv.appendChild(headerDiv);
+    contentDiv.appendChild(textDiv);
+    contentDiv.appendChild(timeDiv);
 
     // Add edit/delete buttons for own messages
     if (msg.isCurrentUser) {
@@ -283,7 +296,27 @@ function displayUserPresence() {
         onlineCountEl.textContent = onlineUsers.length;
     }
 
-    // Update user list if it exists
+    // Update the online users sidebar list (chat.html uses #onlineUsersList)
+    const onlineListEl = document.getElementById('onlineUsersList');
+    if (onlineListEl) {
+        onlineListEl.innerHTML = '';
+        onlineUsers.forEach(user => {
+            const li = document.createElement('li');
+            li.className = 'user-item';
+            
+            const indicator = document.createElement('span');
+            indicator.className = 'online-indicator';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = user;
+            
+            li.appendChild(indicator);
+            li.appendChild(nameSpan);
+            onlineListEl.appendChild(li);
+        });
+    }
+
+    // Also update user list if it exists (index.html uses #userList)
     const userListEl = document.getElementById('userList');
     if (userListEl) {
         userListEl.innerHTML = '';
@@ -291,7 +324,6 @@ function displayUserPresence() {
             const userItemDiv = document.createElement('div');
             userItemDiv.className = 'user-item';
             
-            // Create avatar for user list
             const avatarSpan = document.createElement('span');
             avatarSpan.className = 'user-avatar';
             avatarSpan.textContent = getInitials(user);
@@ -367,6 +399,7 @@ function connectWebSocket() {
     // Create WebSocket connection
     const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
+    stompClient.debug = null; // Disable noisy logs
 
     stompClient.connect({}, function(frame) {
         console.log('Connected: ' + frame.command);
@@ -374,18 +407,21 @@ function connectWebSocket() {
         // Broadcast user online
         broadcastUserOnline();
 
+        // Load initial online users from REST API
+        fetch('/api/users/online')
+            .then(r => r.json())
+            .then(data => {
+                if (data.users) {
+                    data.users.forEach(u => {
+                        if (!onlineUsers.includes(u)) onlineUsers.push(u);
+                    });
+                    displayUserPresence();
+                }
+            })
+            .catch(err => console.error('Error loading online users:', err));
+
         // Subscribe to messages topic
         stompClient.subscribe('/topic/messages', function(messageOutput) {
-            const msg = JSON.parse(messageOutput.body);
-            msg.isCurrentUser = (msg.sender === currentUser);
-            displayMessage(msg);
-            
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        });
-
-        // Subscribe to channel-specific messages
-        stompClient.subscribe(`/topic/channel/${currentChannel}`, function(messageOutput) {
             const msg = JSON.parse(messageOutput.body);
             msg.isCurrentUser = (msg.sender === currentUser);
             displayMessage(msg);
@@ -474,7 +510,7 @@ function getInitials(username) {
     if (parts.length >= 2) {
         return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
     } else {
-        return username.substring(0, Math.min(2, username.length())).toUpperCase();
+        return username.substring(0, Math.min(2, username.length)).toUpperCase();
     }
 }
 
@@ -819,7 +855,7 @@ function highlightMentions(text) {
  * Handle mention autocomplete
  */
 function setupMentionAutocomplete() {
-    const messageInput = document.getElementById('message');
+    const messageInput = document.getElementById('messageInput') || document.getElementById('message');
     let mentionStartIndex = -1;
     let autocompleteUsers = [];
     
