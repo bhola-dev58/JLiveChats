@@ -259,11 +259,6 @@ function displayMessage(msg) {
         contentDiv.appendChild(actionsDiv);
     }
 
-    contentDiv.appendChild(headerDiv);
-    contentDiv.appendChild(textDiv);
-    contentDiv.appendChild(timeDiv);
-    contentDiv.appendChild(reactionsDiv);
-
     messageDiv.appendChild(avatarDiv);
     messageDiv.appendChild(contentDiv);
 
