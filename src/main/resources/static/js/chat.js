@@ -236,11 +236,45 @@ function displayMessage(msg) {
 
     const reactionsDiv = document.createElement('div');
     reactionsDiv.className = 'message-reactions';
-    reactionsDiv.innerHTML = `
-        <span class="reaction-btn" onclick="addReaction(this)">😊</span>
-        <span class="pin-btn" title="Pin message" onclick="pinMessage('${msg.id || ''}', '${msg.sender}', '${msg.content.replace(/'/g, "\\'")}', '${msg.timestamp}', '${msg.channel}')">📌</span>
-        <span class="thread-btn" title="Reply in thread" onclick="openThread('${msg.id || ''}', '${msg.sender}', '${msg.content.replace(/'/g, "\\'")}')">💬</span>
-    `;
+
+    const reactionBtn = document.createElement('span');
+    reactionBtn.className = 'reaction-btn';
+    reactionBtn.textContent = '😊';
+    reactionBtn.addEventListener('click', function() { addReaction(this); });
+
+    const pinBtn = document.createElement('span');
+    pinBtn.className = 'pin-btn';
+    pinBtn.title = 'Pin message';
+    pinBtn.textContent = '📌';
+    pinBtn.dataset.messageId = msg.id || '';
+    pinBtn.dataset.sender = msg.sender;
+    pinBtn.dataset.content = msg.content;
+    pinBtn.dataset.timestamp = msg.timestamp || '';
+    pinBtn.dataset.channel = msg.channel || '';
+    pinBtn.addEventListener('click', function() {
+        pinMessage(
+            this.dataset.messageId,
+            this.dataset.sender,
+            this.dataset.content,
+            this.dataset.timestamp,
+            this.dataset.channel
+        );
+    });
+
+    const threadBtn = document.createElement('span');
+    threadBtn.className = 'thread-btn';
+    threadBtn.title = 'Reply in thread';
+    threadBtn.textContent = '💬';
+    threadBtn.dataset.messageId = msg.id || '';
+    threadBtn.dataset.sender = msg.sender;
+    threadBtn.dataset.content = msg.content;
+    threadBtn.addEventListener('click', function() {
+        openThread(this.dataset.messageId, this.dataset.sender, this.dataset.content);
+    });
+
+    reactionsDiv.appendChild(reactionBtn);
+    reactionsDiv.appendChild(pinBtn);
+    reactionsDiv.appendChild(threadBtn);
 
     textDiv.appendChild(reactionsDiv);
 
@@ -252,10 +286,28 @@ function displayMessage(msg) {
     if (msg.isCurrentUser) {
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'message-actions';
-        actionsDiv.innerHTML = `
-            <button class="action-btn edit-btn" title="Edit message" onclick="editMessage('${msg.id || messageDiv.id}', '${msg.content.replace(/'/g, "\\'")}')">✏️</button>
-            <button class="action-btn delete-btn" title="Delete message" onclick="deleteMessage('${msg.id || messageDiv.id}')">🗑️</button>
-        `;
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'action-btn edit-btn';
+        editBtn.title = 'Edit message';
+        editBtn.textContent = '✏️';
+        editBtn.dataset.messageId = msg.id || messageDiv.id;
+        editBtn.dataset.content = msg.content;
+        editBtn.addEventListener('click', function() {
+            editMessage(this.dataset.messageId, this.dataset.content);
+        });
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'action-btn delete-btn';
+        deleteBtn.title = 'Delete message';
+        deleteBtn.textContent = '🗑️';
+        deleteBtn.dataset.messageId = msg.id || messageDiv.id;
+        deleteBtn.addEventListener('click', function() {
+            deleteMessage(this.dataset.messageId);
+        });
+
+        actionsDiv.appendChild(editBtn);
+        actionsDiv.appendChild(deleteBtn);
         contentDiv.appendChild(actionsDiv);
     }
 

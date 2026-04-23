@@ -4,6 +4,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.jlivechats.repository.ChatMessageRepository;
 import com.jlivechats.model.ChatMessage;
 import com.jlivechats.service.UserPresenceService;
@@ -16,6 +18,8 @@ import com.jlivechats.service.MessageReactionService;
  */
 @Controller
 public class WebSocketController {
+
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketController.class);
 
     private final ChatMessageRepository chatMessageRepository;
 
@@ -187,7 +191,7 @@ public class WebSocketController {
             chatMessageRepository.save(entity);
         } catch (Exception e) {
             // Log but don't fail the WebSocket message delivery
-            System.err.println("Failed to persist message: " + e.getMessage());
+            logger.error("Failed to persist message: {}", e.getMessage(), e);
         }
     }
 }
