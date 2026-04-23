@@ -3,7 +3,11 @@ package com.jlivechats.controller;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
-import com.jlivechats.service.MessageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.jlivechats.repository.ChatMessageRepository;
+import com.jlivechats.model.ChatMessage;
 import com.jlivechats.service.UserPresenceService;
 import com.jlivechats.service.TypingIndicatorService;
 import com.jlivechats.service.MessageReactionService;
@@ -15,7 +19,16 @@ import com.jlivechats.service.MessageReactionService;
 @Controller
 public class WebSocketController {
 
-    public static class ChatMessage {
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketController.class);
+
+    private final ChatMessageRepository chatMessageRepository;
+
+    @Autowired
+    public WebSocketController(ChatMessageRepository chatMessageRepository) {
+        this.chatMessageRepository = chatMessageRepository;
+    }
+
+    public static class WebSocketMessage {
         public String id;
         public String sender;
         public String content;
@@ -23,9 +36,9 @@ public class WebSocketController {
         public String channel;
         public String messageType; // "chat", "system", "reaction", "typing"
 
-        public ChatMessage() {}
+        public WebSocketMessage() {}
 
-        public ChatMessage(String sender, String content, String channel) {
+        public WebSocketMessage(String sender, String content, String channel) {
             this.id = java.util.UUID.randomUUID().toString();
             this.sender = sender;
             this.content = content;
@@ -42,6 +55,8 @@ public class WebSocketController {
         public String channel;
         public int onlineCount;
 
+        public PresenceEvent() {}
+
         public PresenceEvent(String username, String status, String channel, int count) {
             this.username = username;
             this.status = status;
@@ -54,6 +69,8 @@ public class WebSocketController {
         public String username;
         public String channel;
         public boolean isTyping;
+
+        public TypingEvent() {}
 
         public TypingEvent(String username, String channel, boolean isTyping) {
             this.username = username;
@@ -79,15 +96,17 @@ public class WebSocketController {
     }
 
     /**
-     * Handle chat messages and broadcast to all subscribers
+     * Handle chat messages and broadcast to all subscribers.
+     * Persists messages to database via ChatMessageRepository.
      */
     @MessageMapping("/sendMessage")
     @SendTo("/topic/messages")
-    public ChatMessage sendMessage(ChatMessage message) {
+    public WebSocketMessage sendMessage(WebSocketMessage message) {
         if (message.id == null) {
             message.id = java.util.UUID.randomUUID().toString();
         }
-        MessageService.addMessage(message.sender, message.content, true);
+        // Persist message to database
+        persistMessage(message);
         TypingIndicatorService.userStoppedTyping(message.sender, message.channel);
         return message;
     }
@@ -96,12 +115,13 @@ public class WebSocketController {
      * Handle channel-specific messages
      */
     @MessageMapping("/sendChannelMessage")
-    @SendTo("/topic/channel/{channel}")
-    public ChatMessage sendChannelMessage(ChatMessage message) {
+    @SendTo("/topic/messages")
+    public WebSocketMessage sendChannelMessage(WebSocketMessage message) {
         if (message.id == null) {
             message.id = java.util.UUID.randomUUID().toString();
         }
-        MessageService.addMessage(message.sender, message.content, true);
+        // Persist message to database
+        persistMessage(message);
         TypingIndicatorService.userStoppedTyping(message.sender, message.channel);
         return message;
     }
@@ -155,5 +175,23 @@ public class WebSocketController {
             MessageReactionService.removeReaction(event.messageId, event.emoji, event.username);
         }
         return event;
+    }
+
+    /**
+     * Persist a WebSocket message to the database
+     */
+    private void persistMessage(WebSocketMessage message) {
+        try {
+            ChatMessage entity = new ChatMessage();
+            entity.setSender(message.sender);
+            entity.setContent(message.content);
+            entity.setChannel(message.channel != null ? message.channel : "general");
+            entity.setType(ChatMessage.MessageType.CHAT);
+            entity.setTimestamp(java.time.LocalDateTime.now());
+            chatMessageRepository.save(entity);
+        } catch (Exception e) {
+            // Log but don't fail the WebSocket message delivery
+            logger.error("Failed to persist message: {}", e.getMessage(), e);
+        }
     }
 }

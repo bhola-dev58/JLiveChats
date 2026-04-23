@@ -52,19 +52,23 @@ function connect(event) {
 }
 
 function onConnected() {
-    stompClient.subscribe('/topic/public', onMessageReceived);
+    stompClient.subscribe('/topic/messages', onMessageReceived);
 
-    stompClient.send("/app/chat.addUser",
+    stompClient.send("/app/user/online",
         {},
-        JSON.stringify({ sender: username, type: 'JOIN' })
+        JSON.stringify({ username: username, status: 'online', channel: 'general' })
     );
 
-    // Initial history fetch
-    fetch('/api/history')
+    // Initial history fetch from ChatApiController
+    fetch('/api/history?channel=general')
         .then(response => response.json())
         .then(messages => {
-            messages.forEach(msg => displayMessage(msg));
-        });
+            messages.forEach(msg => {
+                msg.messageType = msg.messageType || 'chat';
+                displayMessage(msg);
+            });
+        })
+        .catch(err => console.error('Error loading history:', err));
 }
 
 function onError(error) {
@@ -77,9 +81,11 @@ function sendMessage(event) {
         const chatMessage = {
             sender: username,
             content: messageInput.value,
-            type: 'CHAT'
+            channel: 'general',
+            messageType: 'chat',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
-        stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+        stompClient.send("/app/sendChannelMessage", {}, JSON.stringify(chatMessage));
         messageInput.value = '';
     }
     event.preventDefault();
@@ -92,7 +98,7 @@ function onMessageReceived(payload) {
 
 
 function displayMessage(message) {
-    if (message.type === 'CHAT') {
+    if (message.messageType === 'chat') {
         const msgDiv = document.createElement('div');
         // Determine left/right alignment
         const isMe = message.sender === username;

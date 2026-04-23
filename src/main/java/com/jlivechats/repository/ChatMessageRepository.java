@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     List<ChatMessage> findTop50ByOrderByTimestampAsc();
+    List<ChatMessage> findTop50ByChannelOrderByTimestampAsc(String channel);
 }

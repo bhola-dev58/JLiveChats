@@ -17,7 +17,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, UserRepository userRepository, PasswordEncoder passwordEncoder) throws Exception {
         http
-            .csrf().disable()
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 // Allow public access to these paths
                 .requestMatchers("/", "/static/**", "/css/**", "/js/**", "/ws/**", 
@@ -38,6 +38,7 @@ public class SecurityConfig {
                     if (!userRepository.existsByUsername(username)) {
                         com.jlivechats.model.User user = new com.jlivechats.model.User();
                         user.setUsername(username);
+                        user.setEmail(email);
                         user.setPassword(passwordEncoder.encode("oauth2-" + System.currentTimeMillis()));
                         userRepository.save(user);
                     }

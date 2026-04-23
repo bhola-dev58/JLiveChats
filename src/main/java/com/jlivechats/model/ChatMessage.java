@@ -1,6 +1,8 @@
 package com.jlivechats.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,6 +26,8 @@ public class ChatMessage {
 
     private String sender;
     private String content;
+    private String channel;
+    @Enumerated(EnumType.STRING)
     private MessageType type;
     private LocalDateTime timestamp;
 
